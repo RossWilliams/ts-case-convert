@@ -53,9 +53,9 @@ const snake = objectToSnake({
   },
 });
 
-type CheckSnake = typeof snake.anArrayOfObjects[0]['a_b']; // -> 'string'
-const ab: CheckSnake = snake.anArrayOfObjects[0]['a_b']; // -> valid
-console.log(snake.anArrayOfObjects.a_b); // -> 'ab'
+type CheckSnake = typeof snake.an_array_of_objects[0]['a_b']; // -> 'string'
+const ab: CheckSnake = snake.an_array_of_objects[0]['a_b']; // -> valid
+console.log(snake.an_array_of_objects.a_b); // -> 'ab'
 ```
 
 ## Run tests
