@@ -6,6 +6,7 @@
   <a href="https://badge.fury.io/js/ts-case-convert"><img src="https://badge.fury.io/js/ts-case-convert.svg" alt="npm version" height="18"></a>
   <img alt="npm bundle size" src="https://img.shields.io/bundlephobia/minzip/ts-case-convert?style=flat">
   <img alt="npm type definitions" src="https://img.shields.io/npm/types/ts-case-convert?style=flat">
+  <img alt="GitHub package.json dependency version (dev dep on branch)" src="https://img.shields.io/github/package-json/dependency-version/rosswilliams/ts-case-convert/dev/typescript">
   <a href="https://github.com/RossWilliams/ts-case-convert#readme" target="_blank">
     <img alt="Documentation" src="https://img.shields.io/badge/documentation-yes-brightgreen.svg" />
   </a>
