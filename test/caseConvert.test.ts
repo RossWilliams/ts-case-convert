@@ -56,8 +56,8 @@ describe('Property name converter', () => {
     expect(testToSnake.an_array).toEqual([1, 2, 4]);
     expect(testToSnake.null_object).toBeNull();
     expect(testToSnake.undef_object).toBeUndefined();
-    //expect(testToSnake.an_array_of_objects[0].aB).toEqual("ab");
-    //expect(testToSnake.an_array_of_objects[0].aC).toEqual("ac");
+    expect(testToSnake.an_array_of_objects[0].a_b).toEqual('ab');
+    expect(testToSnake.an_array_of_objects[0].a_c).toEqual('ac');
     expect(testToSnake.an_object.a1).toEqual('a_1');
     expect(testToSnake.an_object.a2).toEqual('a_2');
   });

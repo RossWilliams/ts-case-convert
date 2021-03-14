@@ -22,7 +22,7 @@ function convertObject<
                   ? ObjectToCamel<ArrayItem>
                   : ObjectToSnake<ArrayItem>
               >(item, keyConverter)
-            : item
+            : item,
         ) as unknown[])
       : typeof v === 'object'
       ? // eslint-disable-next-line @typescript-eslint/ban-types
@@ -34,7 +34,7 @@ function convertObject<
         >(
           // eslint-disable-next-line @typescript-eslint/ban-types
           v,
-          keyConverter
+          keyConverter,
         )
       : (v as unknown);
   }
@@ -63,7 +63,7 @@ export function toSnake(term: string): string {
     result = result.replace(
       /([a-z])([0-9])/,
       (_all, $1: string, $2: string) =>
-        `${$1.toLowerCase()}_${$2.toLowerCase()}`
+        `${$1.toLowerCase()}_${$2.toLowerCase()}`,
     );
 
     circuitBreaker += 1;
@@ -75,10 +75,8 @@ export function toSnake(term: string): string {
   ) {
     result = result.replace(
       /(.+?)([A-Z])/,
-      (_all, $1: string | undefined, $2: string) =>
-        `${
-          typeof $1 !== 'undefined' ? $1.toLowerCase() : ''
-        }_${$2.toLowerCase()}`
+      (_all, $1: string, $2: string) =>
+        `${$1.toLowerCase()}_${$2.toLowerCase()}`,
     );
     circuitBreaker += 1;
   }
