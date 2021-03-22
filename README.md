@@ -66,7 +66,7 @@ yarn run test
 
 ## Documentation
 
-See [tests](./test/caseStyles.test.ts).
+See [tests](./test/caseConvert.test.ts).
 
 ## 📝 License
 
