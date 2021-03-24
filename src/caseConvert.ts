@@ -96,7 +96,7 @@ export type ToCamel<S extends string | number | symbol> = S extends string
   : never;
 
 // eslint-disable-next-line @typescript-eslint/ban-types
-type ObjectToCamel<T extends object> = {
+export type ObjectToCamel<T extends object> = {
   // eslint-disable-next-line @typescript-eslint/ban-types
   [K in keyof T as ToCamel<K>]: T[K] extends Array<unknown>
     ? // eslint-disable-next-line @typescript-eslint/ban-types
@@ -153,7 +153,7 @@ export type ToSnake<S extends string | number | symbol> = S extends string
   : never;
 
 // eslint-disable-next-line @typescript-eslint/ban-types
-type ObjectToSnake<T extends object> = {
+export type ObjectToSnake<T extends object> = {
   [K in keyof T as ToSnake<K>]: T[K] extends Array<unknown>
     ? // eslint-disable-next-line @typescript-eslint/ban-types
       T[K] extends Array<infer ArrayType>
