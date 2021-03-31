@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.1.1](https://github.com/RossWilliams/ts-case-convert/compare/v1.1.0...v1.1.1) (2021-03-31)
+
+
+### Bug Fixes
+
+* better support optional nested types ([ea7e171](https://github.com/RossWilliams/ts-case-convert/commit/ea7e1716abb445bd9b48c5a07028860cef962f1b))
+
 ## [1.1.0](https://github.com/RossWilliams/ts-case-convert/compare/v1.0.5...v1.1.0) (2021-03-24)
 
 
