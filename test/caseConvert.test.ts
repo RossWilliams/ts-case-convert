@@ -5,6 +5,7 @@ import {
   ToCamel,
   ToSnake,
   toCamel,
+  ObjectToSnake,
 } from '../src/caseConvert';
 
 describe('Property name converter', () => {
@@ -19,6 +20,9 @@ describe('Property name converter', () => {
       an_object: {
         a_1: 'a1',
         a_2: 'a2',
+        a_3: {
+          b_4: 'b4',
+        },
       },
     });
 
@@ -33,6 +37,7 @@ describe('Property name converter', () => {
     expect(testToCamel.anArrayOfObjects[0].aC).toEqual('ac');
     expect(testToCamel.anObject.a1).toEqual('a1');
     expect(testToCamel.anObject.a2).toEqual('a2');
+    expect(testToCamel.anObject.a3.b4).toEqual('b4');
   });
 
   it('converts to snake_case', () => {
@@ -46,6 +51,9 @@ describe('Property name converter', () => {
       anObject: {
         A1: 'a_1',
         A2: 'a_2',
+        A3: {
+          B4: 'b_4',
+        },
       },
     });
 
@@ -60,6 +68,7 @@ describe('Property name converter', () => {
     expect(testToSnake.an_array_of_objects[0].a_c).toEqual('ac');
     expect(testToSnake.an_object.a1).toEqual('a_1');
     expect(testToSnake.an_object.a2).toEqual('a_2');
+    expect(testToSnake.an_object.a3.b4).toEqual('b_4');
   });
 });
 
@@ -181,3 +190,37 @@ type T22 = ToSnake<'abc25D50'>;
 const _s22: AssertEqual<T22, 'abc_25_d50'> = true;
 type T23 = ToSnake<'abc25A50'>;
 const _s23: AssertEqual<T23, 'abc_25_a50'> = true;
+
+interface I24 {
+  optionalObject?: {
+    aProp: string;
+    bProp:
+      | {
+          cProp: string;
+        }
+      | undefined;
+  };
+}
+
+interface I242 {
+  optional_object?: {
+    a_prop: string;
+    b_prop:
+      | {
+          c_prop: string;
+        }
+      | undefined;
+  };
+}
+
+const _c24: I24 = {
+  optionalObject: {
+    aProp: 'a',
+    bProp: {
+      cProp: 'c',
+    },
+  },
+};
+const _c242: I242 = objectToSnake(_c24);
+
+const _s24: AssertEqual<I242, ObjectToSnake<I24>> = true;

@@ -96,21 +96,23 @@ export type ToCamel<S extends string | number | symbol> = S extends string
   : never;
 
 // eslint-disable-next-line @typescript-eslint/ban-types
-export type ObjectToCamel<T extends object> = {
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  [K in keyof T as ToCamel<K>]: T[K] extends Array<unknown>
-    ? // eslint-disable-next-line @typescript-eslint/ban-types
-      T[K] extends Array<infer ArrayType>
-      ? // eslint-disable-next-line @typescript-eslint/ban-types
-        ArrayType extends object
-        ? Array<ObjectToCamel<ArrayType>>
-        : T[K]
-      : never
-    : // eslint-disable-next-line @typescript-eslint/ban-types
-    T[K] extends object
-    ? ObjectToCamel<T[K]>
-    : T[K];
-};
+export type ObjectToCamel<T extends object | undefined> = T extends undefined
+  ? undefined
+  : {
+      // eslint-disable-next-line @typescript-eslint/ban-types
+      [K in keyof T as ToCamel<K>]: T[K] extends Array<unknown>
+        ? // eslint-disable-next-line @typescript-eslint/ban-types
+          T[K] extends Array<infer ArrayType>
+          ? // eslint-disable-next-line @typescript-eslint/ban-types
+            ArrayType extends object
+            ? Array<ObjectToCamel<ArrayType>>
+            : T[K]
+          : never
+        : // eslint-disable-next-line @typescript-eslint/ban-types
+        T[K] extends object | undefined
+        ? ObjectToCamel<T[K]>
+        : T[K];
+    };
 
 export type ToSnake<S extends string | number | symbol> = S extends string
   ? S extends CapitalChars
@@ -153,20 +155,24 @@ export type ToSnake<S extends string | number | symbol> = S extends string
   : never;
 
 // eslint-disable-next-line @typescript-eslint/ban-types
-export type ObjectToSnake<T extends object> = {
-  [K in keyof T as ToSnake<K>]: T[K] extends Array<unknown>
-    ? // eslint-disable-next-line @typescript-eslint/ban-types
-      T[K] extends Array<infer ArrayType>
-      ? // eslint-disable-next-line @typescript-eslint/ban-types
-        ArrayType extends object
-        ? Array<ObjectToSnake<ArrayType>>
-        : T[K]
-      : never
-    : // eslint-disable-next-line @typescript-eslint/ban-types
-    T[K] extends object
-    ? ObjectToSnake<T[K]>
-    : T[K];
-};
+export type ObjectToSnake<T extends object | undefined> = T extends undefined
+  ? undefined
+  : {
+      [K in keyof T as ToSnake<K>]: T[K] extends Array<unknown>
+        ? // eslint-disable-next-line @typescript-eslint/ban-types
+          T[K] extends Array<infer ArrayType>
+          ? // eslint-disable-next-line @typescript-eslint/ban-types
+            ArrayType extends object
+            ? Array<ObjectToSnake<ArrayType>>
+            : T[K]
+          : never
+        : // eslint-disable-next-line @typescript-eslint/ban-types
+        T[K] extends object | undefined
+        ? ObjectToSnake<T[K]>
+        : //  Exclude<T[K], undefined> extends object
+          //  ? ObjectToSnake<Exclude<T[K], undefined>>
+          T[K];
+    };
 
 type CapitalLetters =
   | 'A'
