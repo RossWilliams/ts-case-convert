@@ -26,6 +26,7 @@ const project = new TypeScriptProject({
   repository: 'https://github.com/RossWilliams/ts-case-convert.git',
   codeCov: true /* Define a GitHub workflow step for sending code coverage metrics to https://codecov.io/ Uses codecov/codecov-action@v1 A secret is required for private repos. Configured with @codeCovTokenSecret. */,
   codeCovTokenSecret: 'CODECOV_TOKEN',
+  releaseToNpm: true,
   license: 'Apache-2.0',
   projectType: ProjectType.LIBRARY,
   tsconfig: {
