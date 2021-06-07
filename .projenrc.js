@@ -21,6 +21,8 @@ const project = new TypeScriptProject({
     'camel-case',
     'snake_case',
     'snake-case',
+    'PascalCase',
+    'pascal-case',
   ],
   packageManager: NodePackageManager.YARN,
   repository: 'https://github.com/RossWilliams/ts-case-convert.git',

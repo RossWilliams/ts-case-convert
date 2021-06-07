@@ -6,6 +6,8 @@ import {
   ToSnake,
   toCamel,
   ObjectToSnake,
+  toPascal,
+  objectToPascal,
 } from '../src/caseConvert';
 
 describe('Property name converter', () => {
@@ -70,6 +72,68 @@ describe('Property name converter', () => {
     expect(testToSnake.an_object.a2).toEqual('a_2');
     expect(testToSnake.an_object.a3.b4).toEqual('b_4');
   });
+
+  it('converts to PascalCase from camelCase', () => {
+    const testToPascal = objectToPascal({
+      helloWorld: 'helloWorld',
+      aNumber: 5,
+      anArray: [1, 2, 4],
+      nullObject: null,
+      undefObject: undefined,
+      anArrayOfObjects: [{ aB: 'ab', aC: 'ac' }],
+      anObject: {
+        A1: 'a_1',
+        A2: 'a_2',
+        A3: {
+          B4: 'b_4',
+        },
+      },
+    });
+
+    expect('helloWorld' in testToPascal).toStrictEqual(false);
+    expect('HelloWorld' in testToPascal).toStrictEqual(true);
+    expect(testToPascal.ANumber).toEqual(5);
+    expect(testToPascal.HelloWorld).toEqual('helloWorld');
+    expect(testToPascal.AnArray).toEqual([1, 2, 4]);
+    expect(testToPascal.NullObject).toBeNull();
+    expect(testToPascal.UndefObject).toBeUndefined();
+    expect(testToPascal.AnArrayOfObjects[0].AB).toEqual('ab');
+    expect(testToPascal.AnArrayOfObjects[0].AC).toEqual('ac');
+    expect(testToPascal.AnObject.A1).toEqual('a_1');
+    expect(testToPascal.AnObject.A2).toEqual('a_2');
+    expect(testToPascal.AnObject.A3.B4).toEqual('b_4');
+  });
+
+  it('converts to PascalCase from snake_case', () => {
+    const testToPascal = objectToPascal({
+      hello_world: 'helloWorld',
+      a_number: 5,
+      an_array: [1, 2, 4],
+      null_object: null,
+      undef_object: undefined,
+      an_array_of_objects: [{ a_b: 'ab', a_c: 'ac' }],
+      an_object: {
+        a_1: 'a1',
+        a_2: 'a2',
+        a_3: {
+          b_4: 'b4',
+        },
+      },
+    });
+
+    expect('helloWorld' in testToPascal).toStrictEqual(false);
+    expect('HelloWorld' in testToPascal).toStrictEqual(true);
+    expect(testToPascal.ANumber).toEqual(5);
+    expect(testToPascal.HelloWorld).toEqual('helloWorld');
+    expect(testToPascal.AnArray).toEqual([1, 2, 4]);
+    expect(testToPascal.NullObject).toBeNull();
+    expect(testToPascal.UndefObject).toBeUndefined();
+    expect(testToPascal.AnArrayOfObjects[0].AB).toEqual('ab');
+    expect(testToPascal.AnArrayOfObjects[0].AC).toEqual('ac');
+    expect(testToPascal.AnObject.A1).toEqual('a1');
+    expect(testToPascal.AnObject.A2).toEqual('a2');
+    expect(testToPascal.AnObject.A3.B4).toEqual('b4');
+  });
 });
 
 describe('Regular expressions', () => {
@@ -101,6 +165,35 @@ describe('Regular expressions', () => {
     expect(toCamel('abc_25_d50')).toEqual('abc25D50');
     expect(toCamel('abc_25_a50')).toEqual('abc25A50');
   });
+
+  it('converts to PascalCase', () => {
+    expect(toPascal('hello_world')).toEqual('HelloWorld');
+    expect(toPascal('the_quick_brown_fox_jumps_over_the_lazy_dog')).toEqual(
+      'TheQuickBrownFoxJumpsOverTheLazyDog',
+    );
+    expect(toPascal('abc')).toEqual('Abc');
+    expect(toPascal('a_b_c')).toEqual('ABC');
+    expect(toPascal('ab_c')).toEqual('AbC');
+    expect(toPascal('a_b')).toEqual('AB');
+    expect(toPascal('a_b')).toEqual('AB');
+    expect(toPascal('abc_d')).toEqual('AbcD');
+    expect(toPascal('abc_d')).toEqual('AbcD');
+    expect(toPascal('ab_cde')).toEqual('AbCde');
+    expect(toPascal('abc_d_e_f')).toEqual('AbcDEF');
+    expect(toPascal('ab_cdef_g')).toEqual('AbCdefG');
+    expect(toPascal('ab_cd_e_f_gh')).toEqual('AbCdEFGh');
+    expect(toPascal('A')).toEqual('A');
+    expect(toPascal('a1')).toEqual('A1');
+    expect(toPascal('a_1')).toEqual('A1');
+    expect(toPascal('a_1c_2d')).toEqual('A1c2d');
+    expect(toPascal('ab_1c_2_d')).toEqual('Ab1c2D');
+    expect(toPascal('ab_1c_2d')).toEqual('Ab1c2d');
+    expect(toPascal('ab_25')).toEqual('Ab25');
+    expect(toPascal('abc_e25_d50')).toEqual('AbcE25D50');
+    expect(toPascal('abc_25_d50')).toEqual('Abc25D50');
+    expect(toPascal('abc_25_a50')).toEqual('Abc25A50');
+  });
+
   it('converts to snake case', () => {
     expect(toSnake('helloWorld')).toEqual('hello_world');
     expect(toSnake('theQuickBrownFoxJumpsOverTheLazyDog')).toEqual(
@@ -141,11 +234,8 @@ const _t0: AssertEqual<T0, 'helloWorld'> = true;
 
 type T1 = ToSnake<'helloWorld'>;
 const _s1: AssertEqual<T1, 'hello_world'> = true;
-type T2 = ToSnake<'theQuickBrownFoxJumpsOverTheLazyDog'>;
-const _s2: AssertEqual<
-  T2,
-  'the_quick_brown_fox_jumps_over_the_lazy_dog'
-> = true;
+type T2 = ToSnake<'theQuickBrownFoxJumpsOver'>;
+const _s2: AssertEqual<T2, 'the_quick_brown_fox_jumps_over'> = true;
 type T3 = ToSnake<'abc'>;
 const _s3: AssertEqual<T3, 'abc'> = true;
 type T4 = ToSnake<'Abc'>;
@@ -190,6 +280,8 @@ type T22 = ToSnake<'abc25D50'>;
 const _s22: AssertEqual<T22, 'abc_25_d50'> = true;
 type T23 = ToSnake<'abc25A50'>;
 const _s23: AssertEqual<T23, 'abc_25_a50'> = true;
+type T25 = ToSnake<'a'>;
+const _s25: AssertEqual<T25, 'a'> = true;
 
 interface I24 {
   optionalObject?: {

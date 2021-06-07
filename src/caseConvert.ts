@@ -1,7 +1,10 @@
 // eslint-disable-next-line @typescript-eslint/ban-types
 function convertObject<
   TInput extends object,
-  TResult extends ObjectToCamel<TInput> | ObjectToSnake<TInput>
+  TResult extends
+    | ObjectToCamel<TInput>
+    | ObjectToSnake<TInput>
+    | ObjectToPascal<TInput>,
 >(obj: TInput, keyConverter: (arg: string) => string): TResult {
   if (obj === null || typeof obj === 'undefined' || typeof obj !== 'object') {
     return obj;
@@ -89,6 +92,14 @@ export function objectToSnake<T extends object>(obj: T): ObjectToSnake<T> {
   return convertObject(obj, toSnake);
 }
 
+export function toPascal(term: string): string {
+  return toCamel(term).replace(/^([a-z])/, (m) => m[0].toUpperCase());
+}
+
+export function objectToPascal<T extends object>(obj: T): ObjectToPascal<T> {
+  return convertObject(obj, toPascal);
+}
+
 export type ToCamel<S extends string | number | symbol> = S extends string
   ? S extends `${infer Head}_${infer Tail}`
     ? `${Head}${Capitalize<ToCamel<Tail>>}`
@@ -114,41 +125,67 @@ export type ObjectToCamel<T extends object | undefined> = T extends undefined
         : T[K];
     };
 
+export type ToPascal<S extends string | number | symbol> = S extends string
+  ? S extends `${infer Head}_${infer Tail}`
+    ? `${Capitalize<Head>}${Capitalize<ToCamel<Tail>>}`
+    : Capitalize<S>
+  : never;
+
+export type ObjectToPascal<T extends object | undefined> = T extends undefined
+  ? undefined
+  : {
+      // eslint-disable-next-line @typescript-eslint/ban-types
+      [K in keyof T as ToPascal<K>]: T[K] extends Array<unknown>
+        ? // eslint-disable-next-line @typescript-eslint/ban-types
+          T[K] extends Array<infer ArrayType>
+          ? // eslint-disable-next-line @typescript-eslint/ban-types
+            ArrayType extends object
+            ? Array<ObjectToPascal<ArrayType>>
+            : T[K]
+          : never
+        : // eslint-disable-next-line @typescript-eslint/ban-types
+        T[K] extends object | undefined
+        ? ObjectToPascal<T[K]>
+        : T[K];
+    };
+
 export type ToSnake<S extends string | number | symbol> = S extends string
-  ? S extends CapitalChars
-    ? Lowercase<S>
-    : S extends `${infer Head}${CapitalChars}${infer Tail}`
-    ? Head extends ''
-      ? Tail extends Lowercase<Tail>
-        ? Lowercase<S> /*'Abcdef' */
-        : Tail extends ''
+  ? S extends `${infer Head}${CapitalChars}${infer Tail}` // string has a capital char somewhere
+    ? Head extends '' // there is a capital char in the first position
+      ? Tail extends ''
         ? Lowercase<S> /*  'A' */
         : S extends `${infer Caps}${Tail}` // tail exists, has capital characters
-        ? Tail extends CapitalLetters
-          ? `${Lowercase<Caps>}_${Lowercase<Tail>}` /* 'AB' */
-          : Tail extends `${CapitalLetters}${string}`
-          ? `${ToSnake<Caps>}_${ToSnake<Tail>}` /* first tail char is upper? 'ABcd' */
-          : `${ToSnake<Caps>}${ToSnake<Tail>}` /* 'AbCD','AbcD',  */ /* TODO: if tail is only numbers, append without underscore*/
-        : never /* never reached, used for inference of caps */
+        ? Caps extends CapitalChars
+          ? Tail extends CapitalLetters
+            ? `${Lowercase<Caps>}_${Lowercase<Tail>}` /* 'AB' */
+            : Tail extends `${CapitalLetters}${string}`
+            ? `${ToSnake<Caps>}_${ToSnake<Tail>}` /* first tail char is upper? 'ABcd' */
+            : `${ToSnake<Caps>}${ToSnake<Tail>}` /* 'AbCD','AbcD',  */ /* TODO: if tail is only numbers, append without underscore */
+          : never /* never reached, used for inference of caps */
+        : never
       : Tail extends '' /* 'aB' 'abCD' 'ABCD' 'AB' */
       ? S extends `${Head}${infer Caps}`
-        ? Head extends Lowercase<Head> /* 'abcD' */
-          ? Caps extends Numbers
-            ? never /* stop union type forming */
-            : `${ToSnake<Head>}_${ToSnake<Caps>}` /* 'abcD' 'abc25' */
-          : never /* stop union type forming */
+        ? Caps extends CapitalChars
+          ? Head extends Lowercase<Head> /* 'abcD' */
+            ? Caps extends Numbers
+              ? never /* stop union type forming */
+              : `${ToSnake<Head>}_${ToSnake<Caps>}` /* 'abcD' 'abc25' */
+            : never /* stop union type forming */
+          : never
         : never /* never reached, used for inference of caps */
       : S extends `${Head}${infer Caps}${Tail}` /* 'abCd' 'ABCD' 'AbCd' 'ABcD' */
-      ? Head extends Lowercase<Head> /* is 'abCd' 'abCD' ? */
-        ? Tail extends CapitalLetters /* is 'abCD' where Caps = 'C' */
-          ? `${ToSnake<Head>}_${Lowercase<Caps>}_${Lowercase<Tail>}` /* aBCD */
-          : Tail extends `${CapitalLetters}${string}` /* is 'aBCd' where Caps = 'B' */
-          ? Head extends Numbers
-            ? never /* stop union type forming */
-            : Head extends `${string}${Numbers}`
-            ? never /* stop union type forming */
-            : `${Head}_${Lowercase<Caps>}_${ToSnake<Tail>}` /* 'aBCd' => `${'a'}_${Lowercase<'B'>}_${ToSnake<'Cd'>}` */
-          : `${ToSnake<Head>}_${Lowercase<Caps>}${ToSnake<Tail>}` /* 'aBcD' where Caps = 'B' tail starts as lowercase */
+      ? Caps extends CapitalChars
+        ? Head extends Lowercase<Head> /* is 'abCd' 'abCD' ? */
+          ? Tail extends CapitalLetters /* is 'abCD' where Caps = 'C' */
+            ? `${ToSnake<Head>}_${ToSnake<Caps>}_${Lowercase<Tail>}` /* aBCD Tail = 'D', Head = 'aB' */
+            : Tail extends `${CapitalLetters}${string}` /* is 'aBCd' where Caps = 'B' */
+            ? Head extends Numbers
+              ? never /* stop union type forming */
+              : Head extends `${string}${Numbers}`
+              ? never /* stop union type forming */
+              : `${Head}_${ToSnake<Caps>}_${ToSnake<Tail>}` /* 'aBCd' => `${'a'}_${Lowercase<'B'>}_${ToSnake<'Cd'>}` */
+            : `${ToSnake<Head>}_${Lowercase<Caps>}${ToSnake<Tail>}` /* 'aBcD' where Caps = 'B' tail starts as lowercase */
+          : never
         : never
       : never
     : S /* 'abc'  */
