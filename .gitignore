@@ -10,6 +10,7 @@
 .eslintcache
 .nyc_output
 .yarn-integrity
+/.changelog.tmp.md
 /coverage
 /dist
 /lib
@@ -28,17 +29,16 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 yarn-debug.log*
 yarn-error.log*
 !/.eslintrc.json
-!/.github/dependabot.yml
+!/.gitattributes
 !/.github/pull_request_template.md
 !/.github/workflows/build.yml
-!/.github/workflows/rebuild-bot.yml
 !/.github/workflows/release.yml
+!/.github/workflows/upgrade-dependencies.yml
 !/.mergify.yml
 !/.npmignore
 !/.projen/deps.json
 !/.projen/tasks.json
 !/.projenrc.js
-!/.versionrc.json
 !/LICENSE
 !/package.json
 !/src
@@ -46,4 +46,3 @@ yarn-error.log*
 !/tsconfig.eslint.json
 !/tsconfig.jest.json
 !/tsconfig.json
-!version.json
