@@ -1,1 +1,8 @@
-export { objectToCamel, objectToSnake, toSnake, toCamel } from './caseConvert';
+export {
+  objectToCamel,
+  objectToSnake,
+  toSnake,
+  toCamel,
+  toPascal,
+  objectToPascal,
+} from './caseConvert';
