@@ -23,6 +23,8 @@ function convertObject<
                 ArrayItem,
                 TResult extends ObjectToCamel<TInput>
                   ? ObjectToCamel<ArrayItem>
+                  : TResult extends ObjectToPascal<TInput>
+                  ? ObjectToPascal<ArrayItem>
                   : ObjectToSnake<ArrayItem>
               >(item, keyConverter)
             : item,
@@ -33,6 +35,8 @@ function convertObject<
           typeof v,
           TResult extends ObjectToCamel<TInput>
             ? ObjectToCamel<typeof v>
+            : TResult extends ObjectToPascal<TInput>
+            ? ObjectToPascal<typeof v>
             : ObjectToSnake<typeof v>
         >(
           // eslint-disable-next-line @typescript-eslint/ban-types
