@@ -166,6 +166,30 @@ describe('Regular expressions', () => {
     expect(toCamel('abc_25_a50')).toEqual('abc25A50');
   });
 
+  it('converts from PascalCase to camelCase', () => {
+    expect(toCamel('HelloWorld')).toEqual('helloWorld');
+    expect(toCamel('helloWorld')).toEqual('helloWorld');
+    expect(toCamel('8HelloWorld')).toEqual('8HelloWorld');
+    expect(toCamel('Abc')).toEqual('abc');
+    expect(toCamel('ABC')).toEqual('aBC');
+    expect(toCamel('AbC')).toEqual('abC');
+    expect(toCamel('AB')).toEqual('aB');
+    expect(toCamel('AbcD')).toEqual('abcD');
+    expect(toCamel('AbCde')).toEqual('abCde');
+    expect(toCamel('AbcDEF')).toEqual('abcDEF');
+    expect(toCamel('AbCdefG')).toEqual('abCdefG');
+    expect(toCamel('AbCdEFGh')).toEqual('abCdEFGh');
+    expect(toCamel('A')).toEqual('a');
+    expect(toCamel('A1')).toEqual('a1');
+    expect(toCamel('A1c2d')).toEqual('a1c2d');
+    expect(toCamel('Ab1c2D')).toEqual('ab1c2D');
+    expect(toCamel('Ab1c2d')).toEqual('ab1c2d');
+    expect(toCamel('Ab25')).toEqual('ab25');
+    expect(toCamel('AbcE25D50')).toEqual('abcE25D50');
+    expect(toCamel('Abc25D50')).toEqual('abc25D50');
+    expect(toCamel('Abc25A50')).toEqual('abc25A50');
+  });
+
   it('converts to PascalCase', () => {
     expect(toPascal('hello_world')).toEqual('HelloWorld');
     expect(toPascal('the_quick_brown_fox_jumps_over_the_lazy_dog')).toEqual(
@@ -316,3 +340,10 @@ const _c24: I24 = {
 const _c242: I242 = objectToSnake(_c24);
 
 const _s24: AssertEqual<I242, ObjectToSnake<I24>> = true;
+
+type T26 = ToCamel<'HelloWorld'>;
+const _t26: AssertEqual<T26, 'helloWorld'> = true;
+type T27 = ToCamel<'helloWorld'>;
+const _t27: AssertEqual<T27, 'helloWorld'> = true;
+type T28 = ToCamel<'8HelloWorld'>;
+const _t28: AssertEqual<T28, '8HelloWorld'> = true;

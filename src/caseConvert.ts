@@ -51,7 +51,9 @@ function convertObject<
 export function toCamel(term: string): string {
   return term.length === 1
     ? term.toLowerCase()
-    : term.replace(/_([a-z0-9])/g, (m) => m[1].toUpperCase());
+    : term
+        .replace(/^([A-Z])/, (m) => m[0].toLowerCase())
+        .replace(/_([a-z0-9])/g, (m) => m[1].toUpperCase());
 }
 
 // eslint-disable-next-line @typescript-eslint/ban-types
@@ -106,8 +108,8 @@ export function objectToPascal<T extends object>(obj: T): ObjectToPascal<T> {
 
 export type ToCamel<S extends string | number | symbol> = S extends string
   ? S extends `${infer Head}_${infer Tail}`
-    ? `${Head}${Capitalize<ToCamel<Tail>>}`
-    : S
+    ? `${Uncapitalize<Head>}${Capitalize<ToCamel<Tail>>}`
+    : Uncapitalize<S>
   : never;
 
 // eslint-disable-next-line @typescript-eslint/ban-types
