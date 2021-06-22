@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-types
 function convertObject<
   TInput extends object,
   TResult extends
@@ -16,8 +15,7 @@ function convertObject<
     // @ts-ignore
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     out[keyConverter(k)] = Array.isArray(v)
-      ? // eslint-disable-next-line @typescript-eslint/ban-types
-        (v.map(<ArrayItem extends object>(item: ArrayItem) =>
+      ? (v.map(<ArrayItem extends object>(item: ArrayItem) =>
           typeof item === 'object'
             ? convertObject<
                 ArrayItem,
@@ -30,19 +28,14 @@ function convertObject<
             : item,
         ) as unknown[])
       : typeof v === 'object'
-      ? // eslint-disable-next-line @typescript-eslint/ban-types
-        convertObject<
+      ? convertObject<
           typeof v,
           TResult extends ObjectToCamel<TInput>
             ? ObjectToCamel<typeof v>
             : TResult extends ObjectToPascal<TInput>
             ? ObjectToPascal<typeof v>
             : ObjectToSnake<typeof v>
-        >(
-          // eslint-disable-next-line @typescript-eslint/ban-types
-          v,
-          keyConverter,
-        )
+        >(v, keyConverter)
       : (v as unknown);
   }
   return out;
@@ -56,7 +49,6 @@ export function toCamel(term: string): string {
         .replace(/_([a-z0-9])/g, (m) => m[1].toUpperCase());
 }
 
-// eslint-disable-next-line @typescript-eslint/ban-types
 export function objectToCamel<T extends object>(obj: T): ObjectToCamel<T> {
   return convertObject(obj, toCamel);
 }
@@ -93,7 +85,6 @@ export function toSnake(term: string): string {
   return result.toLowerCase();
 }
 
-// eslint-disable-next-line @typescript-eslint/ban-types
 export function objectToSnake<T extends object>(obj: T): ObjectToSnake<T> {
   return convertObject(obj, toSnake);
 }
@@ -112,21 +103,16 @@ export type ToCamel<S extends string | number | symbol> = S extends string
     : Uncapitalize<S>
   : never;
 
-// eslint-disable-next-line @typescript-eslint/ban-types
 export type ObjectToCamel<T extends object | undefined> = T extends undefined
   ? undefined
   : {
-      // eslint-disable-next-line @typescript-eslint/ban-types
       [K in keyof T as ToCamel<K>]: T[K] extends Array<unknown>
-        ? // eslint-disable-next-line @typescript-eslint/ban-types
-          T[K] extends Array<infer ArrayType>
-          ? // eslint-disable-next-line @typescript-eslint/ban-types
-            ArrayType extends object
+        ? T[K] extends Array<infer ArrayType>
+          ? ArrayType extends object
             ? Array<ObjectToCamel<ArrayType>>
             : T[K]
           : never
-        : // eslint-disable-next-line @typescript-eslint/ban-types
-        T[K] extends object | undefined
+        : T[K] extends object | undefined
         ? ObjectToCamel<T[K]>
         : T[K];
     };
@@ -140,17 +126,13 @@ export type ToPascal<S extends string | number | symbol> = S extends string
 export type ObjectToPascal<T extends object | undefined> = T extends undefined
   ? undefined
   : {
-      // eslint-disable-next-line @typescript-eslint/ban-types
       [K in keyof T as ToPascal<K>]: T[K] extends Array<unknown>
-        ? // eslint-disable-next-line @typescript-eslint/ban-types
-          T[K] extends Array<infer ArrayType>
-          ? // eslint-disable-next-line @typescript-eslint/ban-types
-            ArrayType extends object
+        ? T[K] extends Array<infer ArrayType>
+          ? ArrayType extends object
             ? Array<ObjectToPascal<ArrayType>>
             : T[K]
           : never
-        : // eslint-disable-next-line @typescript-eslint/ban-types
-        T[K] extends object | undefined
+        : T[K] extends object | undefined
         ? ObjectToPascal<T[K]>
         : T[K];
     };
@@ -197,20 +179,16 @@ export type ToSnake<S extends string | number | symbol> = S extends string
     : S /* 'abc'  */
   : never;
 
-// eslint-disable-next-line @typescript-eslint/ban-types
 export type ObjectToSnake<T extends object | undefined> = T extends undefined
   ? undefined
   : {
       [K in keyof T as ToSnake<K>]: T[K] extends Array<unknown>
-        ? // eslint-disable-next-line @typescript-eslint/ban-types
-          T[K] extends Array<infer ArrayType>
-          ? // eslint-disable-next-line @typescript-eslint/ban-types
-            ArrayType extends object
+        ? T[K] extends Array<infer ArrayType>
+          ? ArrayType extends object
             ? Array<ObjectToSnake<ArrayType>>
             : T[K]
           : never
-        : // eslint-disable-next-line @typescript-eslint/ban-types
-        T[K] extends object | undefined
+        : T[K] extends object | undefined
         ? ObjectToSnake<T[K]>
         : //  Exclude<T[K], undefined> extends object
           //  ? ObjectToSnake<Exclude<T[K], undefined>>
