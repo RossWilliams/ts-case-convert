@@ -347,3 +347,20 @@ type T27 = ToCamel<'helloWorld'>;
 const _t27: AssertEqual<T27, 'helloWorld'> = true;
 type T28 = ToCamel<'8HelloWorld'>;
 const _t28: AssertEqual<T28, '8HelloWorld'> = true;
+
+interface I243 {
+  nullable_object: { a_prop: string } | null;
+}
+
+const _c243: I243 = {
+  nullable_object: {
+    a_prop: 'a',
+  },
+};
+interface I2432 {
+  nullableObject: { aProp: string } | null;
+}
+
+const _c2432: I2432 = objectToCamel(_c243);
+
+const _s243: AssertEqual<I243, ObjectToSnake<I2432>> = true;
