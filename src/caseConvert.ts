@@ -110,7 +110,7 @@ export type ObjectToCamel<T extends object | undefined | null> =
     ? null
     : T extends Array<infer ArrayType>
     ? ArrayType extends object
-      ? Array<ObjectToPascal<ArrayType>>
+      ? Array<ObjectToCamel<ArrayType>>
       : Array<ArrayType>
     : {
         [K in keyof T as ToCamel<K>]: T[K] extends
