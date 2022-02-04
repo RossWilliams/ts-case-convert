@@ -7,6 +7,7 @@
 *.tgz
 *.tsbuildinfo
 .cache
+.cache_ggshield
 .eslintcache
 .nyc_output
 .yarn-integrity

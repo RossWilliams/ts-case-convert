@@ -41,20 +41,22 @@ function convertObject<
   return out;
 }
 
-export function toCamel(term: string): string {
-  return term.length === 1
-    ? term.toLowerCase()
-    : term
-        .replace(/^([A-Z])/, (m) => m[0].toLowerCase())
-        .replace(/_([a-z0-9])/g, (m) => m[1].toUpperCase());
+export function toCamel<T extends string>(term: T): ToCamel<T> {
+  return (
+    term.length === 1
+      ? term.toLowerCase()
+      : term
+          .replace(/^([A-Z])/, (m) => m[0].toLowerCase())
+          .replace(/[_-]([a-z0-9])/g, (m) => m[1].toUpperCase())
+  ) as ToCamel<T>;
 }
 
 export function objectToCamel<T extends object>(obj: T): ObjectToCamel<T> {
   return convertObject(obj, toCamel);
 }
 
-export function toSnake(term: string): string {
-  let result = term;
+export function toSnake<T extends string>(term: T): ToSnake<T> {
+  let result: string = term;
   let circuitBreaker = 0;
 
   while (
@@ -82,15 +84,17 @@ export function toSnake(term: string): string {
     circuitBreaker += 1;
   }
 
-  return result.toLowerCase();
+  return result.toLowerCase() as ToSnake<T>;
 }
 
 export function objectToSnake<T extends object>(obj: T): ObjectToSnake<T> {
   return convertObject(obj, toSnake);
 }
 
-export function toPascal(term: string): string {
-  return toCamel(term).replace(/^([a-z])/, (m) => m[0].toUpperCase());
+export function toPascal<T extends string>(term: T): ToPascal<T> {
+  return toCamel(term).replace(/^([a-z])/, (m) =>
+    m[0].toUpperCase(),
+  ) as ToPascal<T>;
 }
 
 export function objectToPascal<T extends object>(obj: T): ObjectToPascal<T> {
@@ -99,7 +103,9 @@ export function objectToPascal<T extends object>(obj: T): ObjectToPascal<T> {
 
 export type ToCamel<S extends string | number | symbol> = S extends string
   ? S extends `${infer Head}_${infer Tail}`
-    ? `${Uncapitalize<Head>}${Capitalize<ToCamel<Tail>>}`
+    ? `${ToCamel<Uncapitalize<Head>>}${Capitalize<ToCamel<Tail>>}`
+    : S extends `${infer Head}-${infer Tail}`
+    ? `${ToCamel<Uncapitalize<Head>>}${Capitalize<ToCamel<Tail>>}`
     : Uncapitalize<S>
   : never;
 
@@ -127,7 +133,9 @@ export type ObjectToCamel<T extends object | undefined | null> =
 
 export type ToPascal<S extends string | number | symbol> = S extends string
   ? S extends `${infer Head}_${infer Tail}`
-    ? `${Capitalize<Head>}${Capitalize<ToCamel<Tail>>}`
+    ? `${Capitalize<ToCamel<Head>>}${Capitalize<ToCamel<Tail>>}`
+    : S extends `${infer Head}-${infer Tail}`
+    ? `${Capitalize<ToCamel<Head>>}${Capitalize<ToCamel<Tail>>}`
     : Capitalize<S>
   : never;
 

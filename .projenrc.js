@@ -43,6 +43,7 @@ const project = new TypeScriptProject({
       },
     },
   },
+  gitignore: ['.cache_ggshield'],
 });
 
 project.eslint.addRules({
