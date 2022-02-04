@@ -8,6 +8,7 @@ import {
   ObjectToSnake,
   toPascal,
   objectToPascal,
+  ToPascal,
 } from '../src/caseConvert';
 
 describe('Property name converter', () => {
@@ -26,6 +27,7 @@ describe('Property name converter', () => {
           b_4: 'b4',
         },
       },
+      ['a-kebab']: 'k1',
     });
 
     expect('helloWorld' in testToCamel).toStrictEqual(true);
@@ -40,6 +42,7 @@ describe('Property name converter', () => {
     expect(testToCamel.anObject.a1).toEqual('a1');
     expect(testToCamel.anObject.a2).toEqual('a2');
     expect(testToCamel.anObject.a3.b4).toEqual('b4');
+    expect(testToCamel.aKebab).toEqual('k1');
   });
 
   it('converts to snake_case', () => {
@@ -119,6 +122,7 @@ describe('Property name converter', () => {
           b_4: 'b4',
         },
       },
+      ['a-kebab']: 'k1',
     });
 
     expect('helloWorld' in testToPascal).toStrictEqual(false);
@@ -133,6 +137,7 @@ describe('Property name converter', () => {
     expect(testToPascal.AnObject.A1).toEqual('a1');
     expect(testToPascal.AnObject.A2).toEqual('a2');
     expect(testToPascal.AnObject.A3.B4).toEqual('b4');
+    expect(testToPascal.AKebab).toEqual('k1');
   });
 });
 
@@ -164,6 +169,7 @@ describe('Regular expressions', () => {
     expect(toCamel('abc_e25_d50')).toEqual('abcE25D50');
     expect(toCamel('abc_25_d50')).toEqual('abc25D50');
     expect(toCamel('abc_25_a50')).toEqual('abc25A50');
+    expect(toCamel('a-kebab_case')).toEqual('aKebabCase');
   });
 
   it('converts from PascalCase to camelCase', () => {
@@ -188,6 +194,7 @@ describe('Regular expressions', () => {
     expect(toCamel('AbcE25D50')).toEqual('abcE25D50');
     expect(toCamel('Abc25D50')).toEqual('abc25D50');
     expect(toCamel('Abc25A50')).toEqual('abc25A50');
+    expect(toCamel('Abc_def_jkl-mno')).toEqual('abcDefJklMno');
   });
 
   it('converts to PascalCase', () => {
@@ -220,8 +227,8 @@ describe('Regular expressions', () => {
 
   it('converts to snake case', () => {
     expect(toSnake('helloWorld')).toEqual('hello_world');
-    expect(toSnake('theQuickBrownFoxJumpsOverTheLazyDog')).toEqual(
-      'the_quick_brown_fox_jumps_over_the_lazy_dog',
+    expect(toSnake('theQuickBrownFoxJumpsOver')).toEqual(
+      'the_quick_brown_fox_jumps_over',
     );
     expect(toSnake('Abc')).toEqual('abc');
     expect(toSnake('abc')).toEqual('abc');
@@ -347,6 +354,27 @@ type T27 = ToCamel<'helloWorld'>;
 const _t27: AssertEqual<T27, 'helloWorld'> = true;
 type T28 = ToCamel<'8HelloWorld'>;
 const _t28: AssertEqual<T28, '8HelloWorld'> = true;
+
+type T29 = ToCamel<'abc-def-jkl-mno'>;
+const _t29: AssertEqual<T29, 'abcDefJklMno'> = true;
+
+type T30 = ToCamel<'abc_def-jkl_mno'>;
+const _t30: AssertEqual<T30, 'abcDefJklMno'> = true;
+
+type T31 = ToCamel<'abc_def_jkl_mno'>;
+const _t31: AssertEqual<T31, 'abcDefJklMno'> = true;
+
+type T32 = ToCamel<'abc-def_jkl-mno'>;
+const _t32: AssertEqual<T32, 'abcDefJklMno'> = true;
+
+type T33 = ToPascal<'abc_def-jkl_mno'>;
+const _t33: AssertEqual<T33, 'AbcDefJklMno'> = true;
+
+type T34 = ToPascal<'abc_def_jkl_mno'>;
+const _t34: AssertEqual<T34, 'AbcDefJklMno'> = true;
+
+type T35 = ToPascal<'abc-def_jkl-mno'>;
+const _t35: AssertEqual<T35, 'AbcDefJklMno'> = true;
 
 interface I243 {
   nullable_object: { a_prop: string } | null;
