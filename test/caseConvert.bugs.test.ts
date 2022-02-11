@@ -2,7 +2,7 @@ import {
   ObjectToCamel,
   ObjectToPascal,
   ObjectToSnake,
-  objectToCamel
+  objectToCamel,
 } from '../src/caseConvert';
 
 describe('bug fixes', () => {
@@ -76,18 +76,29 @@ describe('bug fixes', () => {
   });
 
   it('#52 - objectToCamel return type is a Pascal-cased array when the input is a snake-typed array', () => {
-    type SnakeTyped = { key: string; another_key: string }
-    type CamelType = { key: string; anotherKey: string }
+    type SnakeTyped = { key: string; another_key: string };
+    type CamelType = { key: string; anotherKey: string };
 
-    const snakeObject: SnakeTyped[] = [
-      { key: 'a', another_key: 'b' },
-    ];
+    const snakeObject: SnakeTyped[] = [{ key: 'a', another_key: 'b' }];
 
     const camelObject: CamelType[] = objectToCamel(snakeObject);
 
     expect(Object.keys(camelObject[0])).toEqual(['key', 'anotherKey']);
     expect(camelObject[0].key).toEqual('a');
     expect(camelObject[0].anotherKey).toEqual('b');
+  });
+
+  it('#55 - objectToCamel return type is an array when the input is a snake-typed array', () => {
+    type SnakeTyped = { key: string; another_key: string };
+    type CamelType = { key: string; anotherKey: string };
+
+    const snakeObject: SnakeTyped[] = [{ key: 'a', another_key: 'b' }];
+
+    const camelArray: CamelType[] = objectToCamel(snakeObject);
+
+    expect(Array.isArray(camelArray)).toBe(true);
+    const camelScalarArray = objectToCamel([1]);
+    expect(Array.isArray(camelScalarArray)).toBe(true);
   });
 });
 

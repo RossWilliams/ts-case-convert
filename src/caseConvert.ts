@@ -9,7 +9,7 @@ function convertObject<
     return obj;
   }
 
-  const out = {} as TResult;
+  const out = (Array.isArray(obj) ? [] : {}) as TResult;
   for (const [k, v] of Object.entries(obj)) {
     // eslint-disable-next-line
     // @ts-ignore
