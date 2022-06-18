@@ -9,6 +9,7 @@ function convertObject<
     return obj;
   }
 
+  const isBufferDefined = typeof Buffer !== 'undefined';
   const out = (Array.isArray(obj) ? [] : {}) as TResult;
   for (const [k, v] of Object.entries(obj)) {
     // eslint-disable-next-line
@@ -16,7 +17,7 @@ function convertObject<
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     out[keyConverter(k)] = Array.isArray(v)
       ? (v.map(<ArrayItem extends object>(item: ArrayItem) =>
-          typeof item === 'object' && !Buffer.isBuffer(item)
+          typeof item === 'object' && (!isBufferDefined || !Buffer.isBuffer(item))
             ? convertObject<
                 ArrayItem,
                 TResult extends ObjectToCamel<TInput>
@@ -27,7 +28,7 @@ function convertObject<
               >(item, keyConverter)
             : item,
         ) as unknown[])
-      : Buffer.isBuffer(v)
+      : isBufferDefined && Buffer.isBuffer(v)
       ? v
       : typeof v === 'object'
       ? convertObject<
