@@ -29,7 +29,7 @@ function convertObject<
         ) as unknown[])
       : Buffer.isBuffer(v)
       ? v
-      : typeof v === 'object'
+      : typeof v === 'object' && !(v instanceof Date)
       ? convertObject<
           typeof v,
           TResult extends ObjectToCamel<TInput>

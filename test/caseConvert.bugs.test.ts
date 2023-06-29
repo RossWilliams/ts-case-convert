@@ -117,6 +117,16 @@ describe('bug fixes', () => {
         expect(Buffer.isBuffer(convertedCamelObject.nested.more_nested)).toBeTruthy();
         expect(Buffer.isBuffer(convertedCamelObject.array[0])).toBeTruthy();
     });
+
+    it('#71 - objectToCamel does not handle Date fields properly', () => {
+      const dateValue = new Date();
+      const snakeObject = { date_field: dateValue, nested_object_field: { date_field: dateValue } };
+
+      const camelObject = objectToCamel(snakeObject);
+
+      expect(camelObject.dateField).toEqual(dateValue);
+      expect(camelObject.nestedObjectField.dateField).toEqual(dateValue);
+    });
 });
 
 // Bug #50
