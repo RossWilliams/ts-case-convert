@@ -127,6 +127,20 @@ describe('bug fixes', () => {
     ).toBeTruthy();
     expect(Buffer.isBuffer(convertedCamelObject.array[0])).toBeTruthy();
   });
+
+  it('#78 - does not handle date objects correctly', () => {
+    const snakeObject = {
+      date_key: new Date(),
+      nested: { more_nested: new Date() },
+      array: [new Date()],
+    };
+    const convertedSnakeObj = objectToCamel(snakeObject);
+
+    expect(convertedSnakeObj.dateKey instanceof Date).toBeTruthy();
+    expect(convertedSnakeObj.nested.moreNested instanceof Date).toBeTruthy();
+    console.log(convertedSnakeObj.array);
+    expect(convertedSnakeObj.array[0] instanceof Date).toBeTruthy();
+  });
 });
 
 // Bug #50
@@ -166,4 +180,35 @@ const _camelArrays2: ObjectToCamel<ArrayTypes> = {
   arrayOfArrayOfString: [['a']],
   arrayOfOptionalArrayOfString: [undefined],
   optionalArrayOfString: undefined,
+};
+
+// Bug #78
+const _camelDate: ObjectToCamel<{
+  my_date: Date;
+  arr_date: [Date];
+  nested: { inner_date: Date };
+}> = {
+  myDate: new Date(),
+  arrDate: [new Date()],
+  nested: { innerDate: new Date() },
+};
+
+const _snakeDate: ObjectToSnake<{
+  myDate: Date;
+  arrDate: [Date];
+  nested: { innerDate: Date };
+}> = {
+  my_date: new Date(),
+  arr_date: [new Date()],
+  nested: { inner_date: new Date() },
+};
+
+const _pascalDate: ObjectToPascal<{
+  myDate: Date;
+  arrDate: [Date];
+  nested: { innerDate: Date };
+}> = {
+  MyDate: new Date(),
+  ArrDate: [new Date()],
+  Nested: { InnerDate: new Date() },
 };
