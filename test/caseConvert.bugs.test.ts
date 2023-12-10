@@ -102,21 +102,31 @@ describe('bug fixes', () => {
     expect(Array.isArray(camelScalarArray)).toBe(true);
   });
 
-    it('#58 - does not handle Buffer objects correctly', () => {
-        const snakeObject = { buffer_key: Buffer.from('abc'), nested: { more_nested: Buffer.from('abc') }, array: [Buffer.from('abc')] };
-        const convertedSnakeObj = objectToCamel(snakeObject);
+  it('#58 - does not handle Buffer objects correctly', () => {
+    const snakeObject = {
+      buffer_key: Buffer.from('abc'),
+      nested: { more_nested: Buffer.from('abc') },
+      array: [new Uint8Array(Buffer.from('abc'))],
+    };
+    const convertedSnakeObj = objectToCamel(snakeObject);
 
-        expect(Buffer.isBuffer(convertedSnakeObj.bufferKey)).toBeTruthy();
-        expect(Buffer.isBuffer(convertedSnakeObj.nested.moreNested)).toBeTruthy();
-        expect(Buffer.isBuffer(convertedSnakeObj.array[0])).toBeTruthy();
+    expect(Buffer.isBuffer(convertedSnakeObj.bufferKey)).toBeTruthy();
+    expect(Buffer.isBuffer(convertedSnakeObj.nested.moreNested)).toBeTruthy();
+    expect(convertedSnakeObj.array[0] instanceof Uint8Array).toBeTruthy();
 
-        const camelObject = { bufferKey: Buffer.from('abc'), nested: { moreNested: Buffer.from('abc') }, array: [Buffer.from('abc')] };
-        const convertedCamelObject = objectToSnake(camelObject);
+    const camelObject = {
+      bufferKey: Buffer.from('abc'),
+      nested: { moreNested: Buffer.from('abc') },
+      array: [Buffer.from('abc')],
+    };
+    const convertedCamelObject = objectToSnake(camelObject);
 
-        expect(Buffer.isBuffer(convertedCamelObject.buffer_key)).toBeTruthy();
-        expect(Buffer.isBuffer(convertedCamelObject.nested.more_nested)).toBeTruthy();
-        expect(Buffer.isBuffer(convertedCamelObject.array[0])).toBeTruthy();
-    });
+    expect(Buffer.isBuffer(convertedCamelObject.buffer_key)).toBeTruthy();
+    expect(
+      Buffer.isBuffer(convertedCamelObject.nested.more_nested),
+    ).toBeTruthy();
+    expect(Buffer.isBuffer(convertedCamelObject.array[0])).toBeTruthy();
+  });
 });
 
 // Bug #50

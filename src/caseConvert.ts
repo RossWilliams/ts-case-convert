@@ -16,7 +16,7 @@ function convertObject<
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     out[keyConverter(k)] = Array.isArray(v)
       ? (v.map(<ArrayItem extends object>(item: ArrayItem) =>
-          typeof item === 'object' && !(typeof Buffer !== 'undefined' && Buffer.isBuffer(item))
+          typeof item === 'object' && !(item instanceof Uint8Array)
             ? convertObject<
                 ArrayItem,
                 TResult extends ObjectToCamel<TInput>
@@ -27,7 +27,7 @@ function convertObject<
               >(item, keyConverter)
             : item,
         ) as unknown[])
-      : (typeof Buffer !== 'undefined' && Buffer.isBuffer(v))
+      : v instanceof Uint8Array
       ? v
       : typeof v === 'object'
       ? convertObject<
@@ -120,8 +120,8 @@ export type ObjectToCamel<T extends object | undefined | null> =
     ? ArrayType extends object
       ? Array<ObjectToCamel<ArrayType>>
       : Array<ArrayType>
-    : T extends Buffer
-    ? Buffer
+    : T extends Uint8Array
+    ? Uint8Array
     : {
         [K in keyof T as ToCamel<K>]: T[K] extends
           | Array<infer ArrayType>
@@ -152,8 +152,8 @@ export type ObjectToPascal<T extends object | undefined | null> =
     ? ArrayType extends object
       ? Array<ObjectToPascal<ArrayType>>
       : Array<ArrayType>
-    : T extends Buffer
-    ? Buffer
+    : T extends Uint8Array
+    ? Uint8Array
     : {
         [K in keyof T as ToPascal<K>]: T[K] extends
           | Array<infer ArrayType>
@@ -218,8 +218,8 @@ export type ObjectToSnake<T extends object | undefined | null> =
     ? ArrayType extends object
       ? Array<ObjectToSnake<ArrayType>>
       : Array<ArrayType>
-    : T extends Buffer
-    ? Buffer
+    : T extends Uint8Array
+    ? Uint8Array
     : {
         [K in keyof T as ToSnake<K>]: T[K] extends
           | Array<infer ArrayType>
