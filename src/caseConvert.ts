@@ -16,7 +16,7 @@ function convertObject<
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     out[keyConverter(k)] = Array.isArray(v)
       ? (v.map(<ArrayItem extends object>(item: ArrayItem) =>
-          typeof item === 'object' && !Buffer.isBuffer(item)
+          typeof item === 'object' && !(typeof Buffer !== 'undefined' && Buffer.isBuffer(item))
             ? convertObject<
                 ArrayItem,
                 TResult extends ObjectToCamel<TInput>
@@ -27,7 +27,7 @@ function convertObject<
               >(item, keyConverter)
             : item,
         ) as unknown[])
-      : Buffer.isBuffer(v)
+      : (typeof Buffer !== 'undefined' && Buffer.isBuffer(v))
       ? v
       : typeof v === 'object'
       ? convertObject<
