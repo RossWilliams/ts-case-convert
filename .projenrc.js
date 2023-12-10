@@ -1,10 +1,6 @@
-const {
-  TypeScriptProject,
-  NodePackageManager,
-  ProjectType,
-} = require('projen');
+const { javascript, typescript, ProjectType } = require('projen');
 
-const project = new TypeScriptProject({
+const project = new typescript.TypeScriptProject({
   defaultReleaseBranch: 'main',
   jsiiFqn: 'projen.TypeScriptProject',
   name: 'ts-case-convert',
@@ -24,7 +20,7 @@ const project = new TypeScriptProject({
     'PascalCase',
     'pascal-case',
   ],
-  packageManager: NodePackageManager.YARN,
+  packageManager: javascript.NodePackageManager.YARN_CLASSIC,
   repository: 'https://github.com/RossWilliams/ts-case-convert.git',
   codeCov: true,
   codeCovTokenSecret: 'CODECOV_TOKEN',
@@ -34,14 +30,17 @@ const project = new TypeScriptProject({
   tsconfig: {
     compilerOptions: {
       noUnusedLocals: false,
+      types: [],
+    },
+  },
+  tsconfigDev: {
+    compilerOptions: {
+      noUnusedLocals: false,
+      types: ['jest', 'node'],
     },
   },
   jestOptions: {
-    typescriptConfig: {
-      compilerOptions: {
-        noUnusedLocals: false,
-      },
-    },
+    configFilePath: 'jest.config.json',
   },
   gitignore: ['.cache_ggshield'],
 });
