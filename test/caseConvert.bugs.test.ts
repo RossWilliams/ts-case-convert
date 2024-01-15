@@ -141,6 +141,15 @@ describe('bug fixes', () => {
     console.log(convertedSnakeObj.array);
     expect(convertedSnakeObj.array[0] instanceof Date).toBeTruthy();
   });
+
+  it('#64 - camel to snake missing property name ending in a number', () => {
+    const camelObject = {
+      aaaBbb1: 'a',
+    };
+    const snakeObject = objectToSnake(camelObject);
+    expect(snakeObject.aaa_bbb_1).toEqual('a');
+    expect(Object.keys(snakeObject)).toHaveLength(1);
+  });
 });
 
 // Bug #50

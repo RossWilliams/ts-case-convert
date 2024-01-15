@@ -192,7 +192,12 @@ export type ToSnake<S extends string | number | symbol> = S extends string
         ? Caps extends CapitalChars
           ? Head extends Lowercase<Head> /* 'abcD' */
             ? Caps extends Numbers
-              ? never /* stop union type forming */
+              ? // Head exists and is lowercase, tail does not, Caps is a number, we may be in a sub-select
+                // if head ends with number, don't split head an Caps, keep contiguous numbers together
+                Head extends `${string}${Numbers}`
+                ? never
+                : // head does not end in number, safe to split. 'abc2' -> 'abc_2'
+                  `${ToSnake<Head>}_${Caps}`
               : `${ToSnake<Head>}_${ToSnake<Caps>}` /* 'abcD' 'abc25' */
             : never /* stop union type forming */
           : never
