@@ -313,6 +313,8 @@ type T23 = ToSnake<'abc25A50'>;
 const _s23: AssertEqual<T23, 'abc_25_a50'> = true;
 type T25 = ToSnake<'a'>;
 const _s25: AssertEqual<T25, 'a'> = true;
+type T36 = ToSnake<'abc1'>;
+const _s36: AssertEqual<T36, 'abc_1'> = true;
 
 interface I24 {
   optionalObject?: {
