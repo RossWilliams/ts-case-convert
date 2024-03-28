@@ -31,7 +31,6 @@ jspm_packages/
 .yarn-integrity
 .cache
 .cache_ggshield
-!/.projenrc.js
 /test-reports/
 junit.xml
 !/jest.config.json
@@ -50,3 +49,4 @@ junit.xml
 /lib
 /dist/
 !/.eslintrc.json
+!/.projenrc.js
