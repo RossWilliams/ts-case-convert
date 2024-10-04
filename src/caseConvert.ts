@@ -118,22 +118,19 @@ export type ObjectToCamel<T extends object | undefined | null> =
     ? undefined
     : T extends null
     ? null
-    : T extends Array<infer ArrayType>
-    ? ArrayType extends object
-      ? Array<ObjectToCamel<ArrayType>>
-      : Array<ArrayType>
+    : T extends Array<infer ArrayType extends string | number>
+    ? Array<ArrayType>
+    : T extends Array<infer ArrayType extends object>
+    ? Array<ObjectToCamel<ArrayType>>
     : T extends Uint8Array
     ? Uint8Array
     : T extends Date
     ? Date
     : {
-        [K in keyof T as ToCamel<K>]: T[K] extends
-          | Array<infer ArrayType>
-          | undefined
-          | null
-          ? ArrayType extends object
-            ? Array<ObjectToCamel<ArrayType>>
-            : Array<ArrayType>
+        [K in keyof T as ToCamel<K>]: T[K] extends Array<infer ArrayType extends string | number>
+          ? Array<ArrayType>
+          : T extends Array<infer ArrayType extends object>
+          ? Array<ObjectToCamel<ArrayType>>
           : T[K] extends object | undefined | null
           ? ObjectToCamel<T[K]>
           : T[K];
@@ -152,22 +149,19 @@ export type ObjectToPascal<T extends object | undefined | null> =
     ? undefined
     : T extends null
     ? null
-    : T extends Array<infer ArrayType>
-    ? ArrayType extends object
-      ? Array<ObjectToPascal<ArrayType>>
-      : Array<ArrayType>
+    : T extends Array<infer ArrayType extends string | number>
+    ? Array<ArrayType>
+    : T extends Array<infer ArrayType extends object>
+    ? Array<ObjectToPascal<ArrayType>>
     : T extends Uint8Array
     ? Uint8Array
     : T extends Date
     ? Date
     : {
-        [K in keyof T as ToPascal<K>]: T[K] extends
-          | Array<infer ArrayType>
-          | undefined
-          | null
-          ? ArrayType extends object
-            ? Array<ObjectToPascal<ArrayType>>
-            : Array<ArrayType>
+        [K in keyof T as ToPascal<K>]: T[K] extends Array<infer ArrayType extends string | number>
+          ? Array<ArrayType>
+          : T extends Array<infer ArrayType extends object>
+          ? Array<ObjectToPascal<ArrayType>>
           : T[K] extends object | undefined | null
           ? ObjectToPascal<T[K]>
           : T[K];
@@ -225,22 +219,19 @@ export type ObjectToSnake<T extends object | undefined | null> =
     ? undefined
     : T extends null
     ? null
-    : T extends Array<infer ArrayType>
-    ? ArrayType extends object
-      ? Array<ObjectToSnake<ArrayType>>
-      : Array<ArrayType>
+    : T extends Array<infer ArrayType extends string | number>
+    ? Array<ArrayType>
+    : T extends Array<infer ArrayType extends object>
+    ? Array<ObjectToSnake<ArrayType>>
     : T extends Uint8Array
     ? Uint8Array
     : T extends Date
     ? Date
     : {
-        [K in keyof T as ToSnake<K>]: T[K] extends
-          | Array<infer ArrayType>
-          | undefined
-          | null
-          ? ArrayType extends object
-            ? Array<ObjectToSnake<ArrayType>>
-            : Array<ArrayType>
+        [K in keyof T as ToSnake<K>]: T[K] extends Array<infer ArrayType extends string | number>
+          ? Array<ArrayType>
+          : T extends Array<infer ArrayType extends object>
+          ? Array<ObjectToSnake<ArrayType>>
           : T[K] extends object | undefined | null
           ? ObjectToSnake<T[K]>
           : T[K];
