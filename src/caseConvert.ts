@@ -231,7 +231,7 @@ export type ObjectToSnake<T extends object | undefined | null> =
         [K in keyof T as ToSnake<K>]: T[K] extends Array<infer ArrayType extends string | number>
           ? Array<ArrayType>
           : T extends Array<infer ArrayType extends object>
-          ? Array<ObjectToPascal<ArrayType>>
+          ? Array<ObjectToSnake<ArrayType>>
           : T[K] extends object | undefined | null
           ? ObjectToSnake<T[K]>
           : T[K];
