@@ -134,7 +134,7 @@ export type ObjectToCamel<T extends object | undefined | null> =
           : T[K] extends object | undefined | null
           ? ObjectToCamel<T[K]>
           : T[K];
-        };
+      };
 
 export type ToPascal<S extends string | number | symbol> = S extends string
   ? S extends `${infer Head}_${infer Tail}`
