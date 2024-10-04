@@ -111,7 +111,7 @@ export type ToCamel<S extends string | number | symbol> = S extends string
     : S extends `${infer Head}-${infer Tail}`
     ? `${ToCamel<Uncapitalize<Head>>}${Capitalize<ToCamel<Tail>>}`
     : Uncapitalize<S>
-    : never;
+  : never;
 
 export type ObjectToCamel<T extends object | undefined | null> =
   T extends undefined
@@ -127,14 +127,14 @@ export type ObjectToCamel<T extends object | undefined | null> =
     : T extends Date
     ? Date
     : {
-      [K in keyof T as ToCamel<K>]: T[K] extends Array<infer ArrayType extends string | number>
-      ? Array<ArrayType>
-      : T extends Array<infer ArrayType extends object>
-      ? Array<ObjectToCamel<ArrayType>>
-      : T[K] extends object | undefined | null
-      ? ObjectToCamel<T[K]>
-      : T[K];
-    };
+        [K in keyof T as ToCamel<K>]: T[K] extends Array<infer ArrayType extends string | number>
+          ? Array<ArrayType>
+          : T extends Array<infer ArrayType extends object>
+          ? Array<ObjectToCamel<ArrayType>>
+          : T[K] extends object | undefined | null
+          ? ObjectToCamel<T[K]>
+          : T[K];
+        };
 
 export type ToPascal<S extends string | number | symbol> = S extends string
   ? S extends `${infer Head}_${infer Tail}`
@@ -142,7 +142,7 @@ export type ToPascal<S extends string | number | symbol> = S extends string
     : S extends `${infer Head}-${infer Tail}`
     ? `${Capitalize<ToCamel<Head>>}${Capitalize<ToCamel<Tail>>}`
     : Capitalize<S>
-    : never;
+  : never;
 
 export type ObjectToPascal<T extends object | undefined | null> =
   T extends undefined
@@ -151,21 +151,21 @@ export type ObjectToPascal<T extends object | undefined | null> =
     ? null
     : T extends Array<infer ArrayType extends string | number>
     ? Array<ArrayType>
-      : T extends Array<infer ArrayType extends object>
-      ? Array<ObjectToPascal<ArrayType>>
+    : T extends Array<infer ArrayType extends object>
+    ? Array<ObjectToPascal<ArrayType>>
     : T extends Uint8Array
     ? Uint8Array
     : T extends Date
     ? Date
     : {
-      [K in keyof T as ToPascal<K>]: T[K] extends Array<infer ArrayType extends string | number>
-        ? Array<ArrayType>
-        : T extends Array<infer ArrayType extends object>
-        ? Array<ObjectToPascal<ArrayType>>
-        : T[K] extends object | undefined | null
-        ? ObjectToPascal<T[K]>
-        : T[K];
-    };
+        [K in keyof T as ToPascal<K>]: T[K] extends Array<infer ArrayType extends string | number>
+          ? Array<ArrayType>
+          : T extends Array<infer ArrayType extends object>
+          ? Array<ObjectToPascal<ArrayType>>
+          : T[K] extends object | undefined | null
+          ? ObjectToPascal<T[K]>
+          : T[K];
+      };
 
 export type ToSnake<S extends string | number | symbol> = S extends string
   ? S extends `${infer Head}${CapitalChars}${infer Tail}` // string has a capital char somewhere
@@ -211,7 +211,7 @@ export type ToSnake<S extends string | number | symbol> = S extends string
           : never
         : never
       : never
-  : S /* 'abc'  */
+    : S /* 'abc'  */
   : never;
 
 export type ObjectToSnake<T extends object | undefined | null> =
@@ -235,7 +235,7 @@ export type ObjectToSnake<T extends object | undefined | null> =
           : T[K] extends object | undefined | null
           ? ObjectToSnake<T[K]>
           : T[K];
-    };
+      };
 
 type CapitalLetters =
   | 'A'
