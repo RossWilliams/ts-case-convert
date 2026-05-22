@@ -6,6 +6,8 @@ import {
   ToSnake,
   toCamel,
   ObjectToSnake,
+  ObjectToCamel,
+  ObjectToPascal,
   toPascal,
   objectToPascal,
   ToPascal,
@@ -398,3 +400,57 @@ interface I2432 {
 const _c2432: I2432 = objectToCamel(_c243);
 
 const _s243: AssertEqual<I243, ObjectToSnake<I2432>> = true;
+
+const _snakeStringUnion: ObjectToSnake<{
+  propName: ('a' | 'b' | 'c')[];
+}> = {
+  prop_name: ['a', 'b', 'c'],
+};
+
+const _snakeNumberUnion: ObjectToSnake<{
+  propName: (1 | 2 | 3)[];
+}> = {
+  prop_name: [1, 2, 3],
+};
+
+const _snakeUndefined: ObjectToSnake<{
+  propName: undefined;
+}> = {
+  prop_name: undefined,
+};
+
+const _camelStringUnion: ObjectToCamel<{
+  prop_name: ('a' | 'b' | 'c')[];
+}> = {
+  propName: ['a', 'b', 'c'],
+};
+
+const _camelNumberUnion: ObjectToCamel<{
+  prop_name: (1 | 2 | 3)[];
+}> = {
+  propName: [1, 2, 3],
+};
+
+const _camelUndefined: ObjectToCamel<{
+  prop_name: undefined;
+}> = {
+  propName: undefined,
+};
+
+const _pascalStringUnion: ObjectToPascal<{
+  propName: ('a' | 'b' | 'c')[];
+}> = {
+  PropName: ['a', 'b', 'c'],
+};
+
+const _pascalNumberUnion: ObjectToPascal<{
+  propName: (1 | 2 | 3)[];
+}> = {
+  PropName: [1, 2, 3],
+};
+
+const _pascalUndefined: ObjectToPascal<{
+  propName: undefined;
+}> = {
+  PropName: undefined,
+};

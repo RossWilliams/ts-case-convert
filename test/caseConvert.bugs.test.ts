@@ -7,6 +7,22 @@ import {
 } from '../src/caseConvert';
 
 describe('bug fixes', () => {
+  it('preserves required undefined property values while converting object keys', () => {
+    type SnakeObject = {
+      property_name: undefined;
+    };
+    type CamelObject = {
+      propertyName: undefined;
+    };
+
+    const camelObject: ObjectToCamel<SnakeObject> = {
+      propertyName: undefined,
+    };
+    const expectedCamelObject: CamelObject = camelObject;
+
+    expect(expectedCamelObject.propertyName).toBeUndefined();
+  });
+
   it('#81 - preserves primitive union array item types while converting object keys', () => {
     type SnakeObject = {
       prop_name: ('a' | 'b' | 'c')[];

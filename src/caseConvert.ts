@@ -125,14 +125,7 @@ export type ObjectToCamel<T extends object | undefined | null> =
     : T extends Date
     ? Date
     : {
-        [K in keyof T as ToCamel<K>]: T[K] extends
-          | Array<infer ArrayType>
-          | undefined
-          | null
-          ? Array<ArrayItemToCamel<ArrayType>>
-          : T[K] extends object | undefined | null
-          ? ObjectToCamel<T[K]>
-          : T[K];
+        [K in keyof T as ToCamel<K>]: ObjectValueToCamel<T[K]>;
       };
 
 export type ToPascal<S extends string | number | symbol> = S extends string
@@ -155,14 +148,7 @@ export type ObjectToPascal<T extends object | undefined | null> =
     : T extends Date
     ? Date
     : {
-        [K in keyof T as ToPascal<K>]: T[K] extends
-          | Array<infer ArrayType>
-          | undefined
-          | null
-          ? Array<ArrayItemToPascal<ArrayType>>
-          : T[K] extends object | undefined | null
-          ? ObjectToPascal<T[K]>
-          : T[K];
+        [K in keyof T as ToPascal<K>]: ObjectValueToPascal<T[K]>;
       };
 
 export type ToSnake<S extends string | number | symbol> = S extends string
@@ -230,14 +216,7 @@ export type ObjectToSnake<T extends object | undefined | null> =
     : T extends Date
     ? Date
     : {
-        [K in keyof T as ToSnake<K>]: T[K] extends
-          | Array<infer ArrayType>
-          | undefined
-          | null
-          ? Array<ArrayItemToSnake<ArrayType>>
-          : T[K] extends object | undefined | null
-          ? ObjectToSnake<T[K]>
-          : T[K];
+        [K in keyof T as ToSnake<K>]: ObjectValueToSnake<T[K]>;
       };
 
 type ArrayItemToCamel<T> = T extends object ? ObjectToCamel<T> : T;
@@ -245,6 +224,24 @@ type ArrayItemToCamel<T> = T extends object ? ObjectToCamel<T> : T;
 type ArrayItemToPascal<T> = T extends object ? ObjectToPascal<T> : T;
 
 type ArrayItemToSnake<T> = T extends object ? ObjectToSnake<T> : T;
+
+type ObjectValueToCamel<T> = T extends Array<infer ArrayType>
+  ? Array<ArrayItemToCamel<ArrayType>>
+  : T extends object | undefined | null
+  ? ObjectToCamel<T>
+  : T;
+
+type ObjectValueToPascal<T> = T extends Array<infer ArrayType>
+  ? Array<ArrayItemToPascal<ArrayType>>
+  : T extends object | undefined | null
+  ? ObjectToPascal<T>
+  : T;
+
+type ObjectValueToSnake<T> = T extends Array<infer ArrayType>
+  ? Array<ArrayItemToSnake<ArrayType>>
+  : T extends object | undefined | null
+  ? ObjectToSnake<T>
+  : T;
 
 type CapitalLetters =
   | 'A'
