@@ -1,20 +1,16 @@
-function convertObject<
-  TInput extends object,
-  TResult extends
-    | ObjectToCamel<TInput>
-    | ObjectToSnake<TInput>
-    | ObjectToScreamingSnake<TInput>
-    | ObjectToPascal<TInput>,
->(obj: TInput, keyConverter: (arg: string) => string): TResult {
+function convertObject<TInput extends object, TResult>(
+  obj: TInput,
+  keyConverter: (arg: string) => string,
+): TResult {
   if (obj === null || typeof obj === 'undefined' || typeof obj !== 'object') {
-    return obj;
+    return obj as unknown as TResult;
   }
 
   const out = (Array.isArray(obj) ? [] : {}) as TResult;
   for (const [k, v] of Object.entries(obj)) {
-    // eslint-disable-next-line
+
     // @ts-ignore
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
     out[keyConverter(k)] = Array.isArray(v)
       ? (v.map(<ArrayItem extends object>(item: ArrayItem) =>
           typeof item === 'object' &&
@@ -68,25 +64,30 @@ export function objectToCamel<T extends object>(obj: T): ObjectToCamel<T> {
   return convertObject(obj, toCamel);
 }
 
-export function toSnake<T extends string>(term: T): ToSnake<T> {
+function toSnakeWithSplitNumbers<
+  T extends string,
+  SplitNumbers extends boolean,
+>(term: T, splitNumbers: SplitNumbers): ToSnake<T, SplitNumbers> {
   if (isNumericKey(term)) {
-    return term as ToSnake<T>;
+    return term as ToSnake<T, SplitNumbers>;
   }
 
   let result: string = term;
   let circuitBreaker = 0;
 
-  while (
-    (/([a-z])([0-9])(?![A-Z][a-z])/.exec(result)?.length || 0) > 2 &&
-    circuitBreaker < 10
-  ) {
-    result = result.replace(
-      /([a-z])([0-9])(?![A-Z][a-z])/,
-      (_all, $1: string, $2: string) =>
-        `${$1.toLowerCase()}_${$2.toLowerCase()}`,
-    );
+  if (splitNumbers) {
+    while (
+      (/([a-z])([0-9])(?![A-Z][a-z])/.exec(result)?.length || 0) > 2 &&
+      circuitBreaker < 10
+    ) {
+      result = result.replace(
+        /([a-z])([0-9])(?![A-Z][a-z])/,
+        (_all, $1: string, $2: string) =>
+          `${$1.toLowerCase()}_${$2.toLowerCase()}`,
+      );
 
-    circuitBreaker += 1;
+      circuitBreaker += 1;
+    }
   }
 
   while (
@@ -101,11 +102,27 @@ export function toSnake<T extends string>(term: T): ToSnake<T> {
     circuitBreaker += 1;
   }
 
-  return result.toLowerCase() as ToSnake<T>;
+  return result.toLowerCase() as ToSnake<T, SplitNumbers>;
+}
+
+export function toSnake<T extends string>(term: T): ToSnake<T> {
+  return toSnakeWithSplitNumbers(term, true);
+}
+
+export function toSnakeNoSplitNumbers<T extends string>(
+  term: T,
+): ToSnake<T, false> {
+  return toSnakeWithSplitNumbers(term, false);
 }
 
 export function objectToSnake<T extends object>(obj: T): ObjectToSnake<T> {
   return convertObject(obj, toSnake);
+}
+
+export function objectToSnakeNoSplitNumbers<T extends object>(
+  obj: T,
+): ObjectToSnake<T, false> {
+  return convertObject(obj, toSnakeNoSplitNumbers);
 }
 
 export function toScreamingSnake<T extends string>(
@@ -114,10 +131,22 @@ export function toScreamingSnake<T extends string>(
   return toSnake(term).toUpperCase() as ToScreamingSnake<T>;
 }
 
+export function toScreamingSnakeNoSplitNumbers<T extends string>(
+  term: T,
+): ToScreamingSnake<T, false> {
+  return toSnakeNoSplitNumbers(term).toUpperCase() as ToScreamingSnake<T, false>;
+}
+
 export function objectToScreamingSnake<T extends object>(
   obj: T,
 ): ObjectToScreamingSnake<T> {
   return convertObject(obj, toScreamingSnake);
+}
+
+export function objectToScreamingSnakeNoSplitNumbers<T extends object>(
+  obj: T,
+): ObjectToScreamingSnake<T, false> {
+  return convertObject(obj, toScreamingSnakeNoSplitNumbers);
 }
 
 export function toPascal<T extends string>(term: T): ToPascal<T> {
@@ -184,7 +213,10 @@ export type ObjectToPascal<T extends object | undefined | null> =
         [K in keyof T as ToPascal<K>]: ConvertObjectValue<T[K], 'pascal'>;
       };
 
-export type ToSnake<S extends string | number | symbol> = S extends string
+export type ToSnake<
+  S extends string | number | symbol,
+  SplitNumbers extends boolean = true,
+> = S extends string
   ? S extends NumericKey
     ? S
     : S extends `${infer Head}${CapitalChars}${infer Tail}` // string has a capital char somewhere
@@ -207,11 +239,16 @@ export type ToSnake<S extends string | number | symbol> = S extends string
             ? Caps extends Numbers
               ? // Head exists and is lowercase, tail does not, Caps is a number, we may be in a sub-select
                 // if head ends with number, don't split head an Caps, keep contiguous numbers together
-                Head extends `${string}${Numbers}`
+                SplitNumbers extends false
+                ? `${ToSnake<Head, SplitNumbers>}${Caps}`
+                : Head extends `${string}${Numbers}`
                 ? never
                 : // head does not end in number, safe to split. 'abc2' -> 'abc_2'
-                  `${ToSnake<Head>}_${Caps}`
-              : `${ToSnake<Head>}_${ToSnake<Caps>}` /* 'abcD' 'abc25' */
+                  `${ToSnake<Head, SplitNumbers>}_${Caps}`
+              : `${ToSnake<Head, SplitNumbers>}_${ToSnake<
+                  Caps,
+                  SplitNumbers
+                >}` /* 'abcD' 'abc25' */
             : never /* stop union type forming */
           : never
         : never /* never reached, used for inference of caps */
@@ -219,59 +256,90 @@ export type ToSnake<S extends string | number | symbol> = S extends string
       ? Caps extends CapitalChars
         ? Head extends Lowercase<Head> /* is 'abCd' 'abCD' ? */
           ? Tail extends CapitalLetters /* is 'abCD' where Caps = 'C' */
-            ? `${ToSnake<Head>}_${ToSnake<Caps>}_${Lowercase<Tail>}` /* aBCD Tail = 'D', Head = 'aB' */
+            ? `${ToSnake<Head, SplitNumbers>}_${ToSnake<
+                Caps,
+                SplitNumbers
+              >}_${Lowercase<Tail>}` /* aBCD Tail = 'D', Head = 'aB' */
             : Tail extends `${CapitalLetters}${string}` /* is 'aBCd' where Caps = 'B' */
             ? Caps extends Numbers
-              ? `${ToSnake<Head>}${Caps}_${ToSnake<Tail>}` /* 's3Id' => 's3_id' */
+              ? `${ToSnake<Head, SplitNumbers>}${Caps}_${ToSnake<
+                  Tail,
+                  SplitNumbers
+                >}` /* 's3Id' => 's3_id' */
               : Head extends Numbers
               ? never /* stop union type forming */
               : Head extends `${string}${Numbers}`
               ? never /* stop union type forming */
-              : `${Head}_${ToSnake<Caps>}_${ToSnake<Tail>}` /* 'aBCd' => `${'a'}_${Lowercase<'B'>}_${ToSnake<'Cd'>}` */
+              : `${Head}_${ToSnake<Caps, SplitNumbers>}_${ToSnake<
+                  Tail,
+                  SplitNumbers
+                >}` /* 'aBCd' => `${'a'}_${Lowercase<'B'>}_${ToSnake<'Cd'>}` */
             : Tail extends `${LowercaseLetters}${string}`
             ? Head extends `${string}${Numbers}`
-              ? `${Head}_${Lowercase<Caps>}${ToSnake<Tail>}` /* 's3Id' => 's3_id' */
-              : `${ToSnake<Head>}_${Lowercase<Caps>}${ToSnake<Tail>}` /* 'aBcD' where Caps = 'B' tail starts as lowercase */
-            : `${ToSnake<Head>}_${Lowercase<Caps>}${ToSnake<Tail>}` /* 'aBcD' where Caps = 'B' tail starts as lowercase */
+              ? `${Head}_${Lowercase<Caps>}${ToSnake<
+                  Tail,
+                  SplitNumbers
+                >}` /* 's3Id' => 's3_id' */
+              : `${ToSnake<Head, SplitNumbers>}_${Lowercase<Caps>}${ToSnake<
+                  Tail,
+                  SplitNumbers
+                >}` /* 'aBcD' where Caps = 'B' tail starts as lowercase */
+            : `${ToSnake<Head, SplitNumbers>}_${Lowercase<Caps>}${ToSnake<
+                Tail,
+                SplitNumbers
+              >}` /* 'aBcD' where Caps = 'B' tail starts as lowercase */
           : never
         : never
       : never
     : S /* 'abc'  */
   : never;
 
-export type ObjectToSnake<T extends object | undefined | null> =
+export type ObjectToSnake<
+  T extends object | undefined | null,
+  SplitNumbers extends boolean = true,
+> =
   T extends undefined
     ? undefined
     : T extends null
     ? null
     : T extends Array<infer ArrayType>
-    ? Array<ConvertArrayItem<ArrayType, 'snake'>>
+    ? Array<ConvertArrayItem<ArrayType, 'snake', SplitNumbers>>
     : T extends Uint8Array
     ? Uint8Array
     : T extends Date
     ? Date
     : {
-        [K in keyof T as ToSnake<K>]: ConvertObjectValue<T[K], 'snake'>;
+        [K in keyof T as ToSnake<K, SplitNumbers>]: ConvertObjectValue<
+          T[K],
+          'snake',
+          SplitNumbers
+        >;
       };
 
-export type ToScreamingSnake<S extends string | number | symbol> =
-  Uppercase<ToSnake<S>>;
+export type ToScreamingSnake<
+  S extends string | number | symbol,
+  SplitNumbers extends boolean = true,
+> = Uppercase<ToSnake<S, SplitNumbers>>;
 
-export type ObjectToScreamingSnake<T extends object | undefined | null> =
+export type ObjectToScreamingSnake<
+  T extends object | undefined | null,
+  SplitNumbers extends boolean = true,
+> =
   T extends undefined
     ? undefined
     : T extends null
     ? null
     : T extends Array<infer ArrayType>
-    ? Array<ConvertArrayItem<ArrayType, 'screamingSnake'>>
+    ? Array<ConvertArrayItem<ArrayType, 'screamingSnake', SplitNumbers>>
     : T extends Uint8Array
     ? Uint8Array
     : T extends Date
     ? Date
     : {
-        [K in keyof T as ToScreamingSnake<K>]: ConvertObjectValue<
+        [K in keyof T as ToScreamingSnake<K, SplitNumbers>]: ConvertObjectValue<
           T[K],
-          'screamingSnake'
+          'screamingSnake',
+          SplitNumbers
         >;
       };
 
@@ -279,25 +347,35 @@ type CaseMode = 'camel' | 'pascal' | 'snake' | 'screamingSnake';
 
 type NumericKey = `${number}`;
 
-type Convert<T extends object | undefined | null, Mode extends CaseMode> =
+type Convert<
+  T extends object | undefined | null,
+  Mode extends CaseMode,
+  SplitNumbers extends boolean,
+> =
   Mode extends 'camel'
     ? ObjectToCamel<T>
     : Mode extends 'pascal'
     ? ObjectToPascal<T>
     : Mode extends 'snake'
-    ? ObjectToSnake<T>
-    : ObjectToScreamingSnake<T>;
+    ? ObjectToSnake<T, SplitNumbers>
+    : ObjectToScreamingSnake<T, SplitNumbers>;
 
-type ConvertArrayItem<T, Mode extends CaseMode> = T extends object
-  ? Convert<T, Mode>
+type ConvertArrayItem<
+  T,
+  Mode extends CaseMode,
+  SplitNumbers extends boolean = true,
+> = T extends object
+  ? Convert<T, Mode, SplitNumbers>
   : T;
 
-type ConvertObjectValue<T, Mode extends CaseMode> = T extends Array<
-  infer ArrayType
->
-  ? Array<ConvertArrayItem<ArrayType, Mode>>
+type ConvertObjectValue<
+  T,
+  Mode extends CaseMode,
+  SplitNumbers extends boolean = true,
+> = T extends Array<infer ArrayType>
+  ? Array<ConvertArrayItem<ArrayType, Mode, SplitNumbers>>
   : T extends object | undefined | null
-  ? Convert<T, Mode>
+  ? Convert<T, Mode, SplitNumbers>
   : T;
 
 function isNumericKey(term: string): boolean {

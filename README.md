@@ -18,7 +18,7 @@
   </a>
 </p>
 
-ts-case-convert converts object keys between camelCase and snake_case while preserving Typescript type information, code completion, and type validation. See tests for detailed conversion tests.
+ts-case-convert is a zero dependency implementation for converting object keys between camelCase, snake_case, PascalCase, and SCREAMING_SNAKE_CASE while preserving TypeScript type information, code completion, and type validation. See tests for detailed conversion tests.
 
 ## Usage
 
@@ -56,17 +56,67 @@ const snake = objectToSnake({
 type CheckSnake = typeof snake.an_array_of_objects[0]['a_b']; // -> 'string'
 const ab: CheckSnake = snake.an_array_of_objects[0]['a_b']; // -> valid
 console.log(snake.an_array_of_objects.a_b); // -> 'ab'
+
+const screamingSnake = objectToScreamingSnake({
+  helloWorld: 'helloWorld',
+  s3Id: 'id',
+  nestedObject: {
+    apiVersion: 'v1',
+  },
+});
+
+type CheckScreamingSnake = typeof screamingSnake.NESTED_OBJECT.API_VERSION; // -> 'string'
+console.log(screamingSnake.S3_ID); // -> 'id'
+```
+
+## No Number Splitting
+
+The default snake case conversion splits lowercase letters from following numbers:
+
+```typescript
+import { toSnake } from 'ts-case-convert';
+
+console.log(toSnake('myItem1')); // -> 'my_item_1'
+```
+
+Use the `no-split-numbers` import path when numbers should stay attached to the preceding word. It exports the same runtime function and type names as the default entry point.
+
+```typescript
+import {
+  objectToScreamingSnake,
+  objectToSnake,
+  toScreamingSnake,
+  toSnake,
+} from 'ts-case-convert/no-split-numbers';
+
+console.log(toSnake('myItem1')); // -> 'my_item1'
+console.log(toScreamingSnake('myItem1')); // -> 'MY_ITEM1'
+
+const output = objectToSnake({
+  myItem1: 'value',
+  nestedObject: {
+    apiVersion2: 'v2',
+  },
+});
+
+console.log(output.my_item1); // -> 'value'
+
+const screaming = objectToScreamingSnake({
+  myItem1: 'value',
+});
+
+console.log(screaming.MY_ITEM1); // -> 'value'
 ```
 
 ## Run tests
 
 ```sh
-yarn run test
+pnpm run test
 ```
 
 ## Documentation
 
-See [tests](./test/caseConvert.test.ts).
+See [tests](./test/caseConvert.test.ts), [bug regression tests](./test/caseConvert.bugs.test.ts), and [no-split-numbers tests](./test/no-split-numbers.test.ts).
 
 ## 📝 License
 
