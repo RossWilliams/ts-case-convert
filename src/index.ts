@@ -1,7 +1,9 @@
 export {
   objectToCamel,
   objectToSnake,
+  objectToScreamingSnake,
   toSnake,
+  toScreamingSnake,
   toCamel,
   toPascal,
   objectToPascal,
@@ -10,7 +12,9 @@ export {
 export type {
   ObjectToCamel,
   ObjectToSnake,
+  ObjectToScreamingSnake,
   ToSnake,
+  ToScreamingSnake,
   ToCamel,
   ToPascal,
   ObjectToPascal,

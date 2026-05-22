@@ -3,6 +3,7 @@ function convertObject<
   TResult extends
     | ObjectToCamel<TInput>
     | ObjectToSnake<TInput>
+    | ObjectToScreamingSnake<TInput>
     | ObjectToPascal<TInput>,
 >(obj: TInput, keyConverter: (arg: string) => string): TResult {
   if (obj === null || typeof obj === 'undefined' || typeof obj !== 'object') {
@@ -25,6 +26,8 @@ function convertObject<
                   ? ObjectToCamel<ArrayItem>
                   : TResult extends ObjectToPascal<TInput>
                   ? ObjectToPascal<ArrayItem>
+                  : TResult extends ObjectToScreamingSnake<TInput>
+                  ? ObjectToScreamingSnake<ArrayItem>
                   : ObjectToSnake<ArrayItem>
               >(item, keyConverter)
             : item,
@@ -38,6 +41,8 @@ function convertObject<
             ? ObjectToCamel<typeof v>
             : TResult extends ObjectToPascal<TInput>
             ? ObjectToPascal<typeof v>
+            : TResult extends ObjectToScreamingSnake<TInput>
+            ? ObjectToScreamingSnake<typeof v>
             : ObjectToSnake<typeof v>
         >(v, keyConverter)
       : (v as unknown);
@@ -95,6 +100,18 @@ export function objectToSnake<T extends object>(obj: T): ObjectToSnake<T> {
   return convertObject(obj, toSnake);
 }
 
+export function toScreamingSnake<T extends string>(
+  term: T,
+): ToScreamingSnake<T> {
+  return toSnake(term).toUpperCase() as ToScreamingSnake<T>;
+}
+
+export function objectToScreamingSnake<T extends object>(
+  obj: T,
+): ObjectToScreamingSnake<T> {
+  return convertObject(obj, toScreamingSnake);
+}
+
 export function toPascal<T extends string>(term: T): ToPascal<T> {
   return toCamel(term).replace(/^([a-z])/, (m) =>
     m[0].toUpperCase(),
@@ -119,13 +136,13 @@ export type ObjectToCamel<T extends object | undefined | null> =
     : T extends null
     ? null
     : T extends Array<infer ArrayType>
-    ? Array<ArrayItemToCamel<ArrayType>>
+    ? Array<ConvertArrayItem<ArrayType, 'camel'>>
     : T extends Uint8Array
     ? Uint8Array
     : T extends Date
     ? Date
     : {
-        [K in keyof T as ToCamel<K>]: ObjectValueToCamel<T[K]>;
+        [K in keyof T as ToCamel<K>]: ConvertObjectValue<T[K], 'camel'>;
       };
 
 export type ToPascal<S extends string | number | symbol> = S extends string
@@ -142,13 +159,13 @@ export type ObjectToPascal<T extends object | undefined | null> =
     : T extends null
     ? null
     : T extends Array<infer ArrayType>
-    ? Array<ArrayItemToPascal<ArrayType>>
+    ? Array<ConvertArrayItem<ArrayType, 'pascal'>>
     : T extends Uint8Array
     ? Uint8Array
     : T extends Date
     ? Date
     : {
-        [K in keyof T as ToPascal<K>]: ObjectValueToPascal<T[K]>;
+        [K in keyof T as ToPascal<K>]: ConvertObjectValue<T[K], 'pascal'>;
       };
 
 export type ToSnake<S extends string | number | symbol> = S extends string
@@ -210,37 +227,57 @@ export type ObjectToSnake<T extends object | undefined | null> =
     : T extends null
     ? null
     : T extends Array<infer ArrayType>
-    ? Array<ArrayItemToSnake<ArrayType>>
+    ? Array<ConvertArrayItem<ArrayType, 'snake'>>
     : T extends Uint8Array
     ? Uint8Array
     : T extends Date
     ? Date
     : {
-        [K in keyof T as ToSnake<K>]: ObjectValueToSnake<T[K]>;
+        [K in keyof T as ToSnake<K>]: ConvertObjectValue<T[K], 'snake'>;
       };
 
-type ArrayItemToCamel<T> = T extends object ? ObjectToCamel<T> : T;
+export type ToScreamingSnake<S extends string | number | symbol> =
+  Uppercase<ToSnake<S>>;
 
-type ArrayItemToPascal<T> = T extends object ? ObjectToPascal<T> : T;
+export type ObjectToScreamingSnake<T extends object | undefined | null> =
+  T extends undefined
+    ? undefined
+    : T extends null
+    ? null
+    : T extends Array<infer ArrayType>
+    ? Array<ConvertArrayItem<ArrayType, 'screamingSnake'>>
+    : T extends Uint8Array
+    ? Uint8Array
+    : T extends Date
+    ? Date
+    : {
+        [K in keyof T as ToScreamingSnake<K>]: ConvertObjectValue<
+          T[K],
+          'screamingSnake'
+        >;
+      };
 
-type ArrayItemToSnake<T> = T extends object ? ObjectToSnake<T> : T;
+type CaseMode = 'camel' | 'pascal' | 'snake' | 'screamingSnake';
 
-type ObjectValueToCamel<T> = T extends Array<infer ArrayType>
-  ? Array<ArrayItemToCamel<ArrayType>>
-  : T extends object | undefined | null
-  ? ObjectToCamel<T>
+type Convert<T extends object | undefined | null, Mode extends CaseMode> =
+  Mode extends 'camel'
+    ? ObjectToCamel<T>
+    : Mode extends 'pascal'
+    ? ObjectToPascal<T>
+    : Mode extends 'snake'
+    ? ObjectToSnake<T>
+    : ObjectToScreamingSnake<T>;
+
+type ConvertArrayItem<T, Mode extends CaseMode> = T extends object
+  ? Convert<T, Mode>
   : T;
 
-type ObjectValueToPascal<T> = T extends Array<infer ArrayType>
-  ? Array<ArrayItemToPascal<ArrayType>>
+type ConvertObjectValue<T, Mode extends CaseMode> = T extends Array<
+  infer ArrayType
+>
+  ? Array<ConvertArrayItem<ArrayType, Mode>>
   : T extends object | undefined | null
-  ? ObjectToPascal<T>
-  : T;
-
-type ObjectValueToSnake<T> = T extends Array<infer ArrayType>
-  ? Array<ArrayItemToSnake<ArrayType>>
-  : T extends object | undefined | null
-  ? ObjectToSnake<T>
+  ? Convert<T, Mode>
   : T;
 
 type CapitalLetters =

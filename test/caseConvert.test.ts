@@ -1,11 +1,15 @@
 import {
   objectToCamel,
   objectToSnake,
+  objectToScreamingSnake,
   toSnake,
+  toScreamingSnake,
   ToCamel,
   ToSnake,
+  ToScreamingSnake,
   toCamel,
   ObjectToSnake,
+  ObjectToScreamingSnake,
   ObjectToCamel,
   ObjectToPascal,
   toPascal,
@@ -76,6 +80,21 @@ describe('Property name converter', () => {
     expect(testToSnake.an_object.a1).toEqual('a_1');
     expect(testToSnake.an_object.a2).toEqual('a_2');
     expect(testToSnake.an_object.a3.b4).toEqual('b_4');
+  });
+
+  it('converts to SCREAMING_SNAKE_CASE', () => {
+    const testToScreamingSnake = objectToScreamingSnake({
+      helloWorld: 'helloWorld',
+      anArrayOfObjects: [{ s3Id: 'id' }],
+      nullObject: null,
+      undefObject: undefined,
+    });
+
+    expect('HELLO_WORLD' in testToScreamingSnake).toStrictEqual(true);
+    expect(testToScreamingSnake.HELLO_WORLD).toEqual('helloWorld');
+    expect(testToScreamingSnake.AN_ARRAY_OF_OBJECTS[0].S3_ID).toEqual('id');
+    expect(testToScreamingSnake.NULL_OBJECT).toBeNull();
+    expect(testToScreamingSnake.UNDEF_OBJECT).toBeUndefined();
   });
 
   it('converts to PascalCase from camelCase', () => {
@@ -256,6 +275,11 @@ describe('Regular expressions', () => {
     expect(toSnake('abc25A50')).toEqual('abc_25_a50');
     expect(toSnake('s3Id')).toEqual('s3_id');
   });
+
+  it('converts to screaming snake case', () => {
+    expect(toScreamingSnake('helloWorld')).toEqual('HELLO_WORLD');
+    expect(toScreamingSnake('s3Id')).toEqual('S3_ID');
+  });
 });
 
 type NotAny<T> = T[] extends true[] ? T : T[] extends false[] ? T : never;
@@ -268,6 +292,8 @@ const _t0: AssertEqual<T0, 'helloWorld'> = true;
 
 type T1 = ToSnake<'helloWorld'>;
 const _s1: AssertEqual<T1, 'hello_world'> = true;
+type TS1 = ToScreamingSnake<'helloWorld'>;
+const _ss1: AssertEqual<TS1, 'HELLO_WORLD'> = true;
 type T2 = ToSnake<'theQuickBrownFoxJumpsOver'>;
 const _s2: AssertEqual<T2, 'the_quick_brown_fox_jumps_over'> = true;
 type T3 = ToSnake<'abc'>;
@@ -355,6 +381,20 @@ const _c24: I24 = {
 const _c242: I242 = objectToSnake(_c24);
 
 const _s24: AssertEqual<I242, ObjectToSnake<I24>> = true;
+
+interface I244 {
+  optionalObject?: {
+    s3Id: string;
+  };
+}
+
+interface I2442 {
+  OPTIONAL_OBJECT?: {
+    S3_ID: string;
+  };
+}
+
+const _ss244: AssertEqual<I2442, ObjectToScreamingSnake<I244>> = true;
 
 type T26 = ToCamel<'HelloWorld'>;
 const _t26: AssertEqual<T26, 'helloWorld'> = true;
