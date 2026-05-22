@@ -64,11 +64,11 @@ export function toSnake<T extends string>(term: T): ToSnake<T> {
   let circuitBreaker = 0;
 
   while (
-    (/([a-z])([0-9])/.exec(result)?.length || 0) > 2 &&
+    (/([a-z])([0-9])(?![A-Z][a-z])/.exec(result)?.length || 0) > 2 &&
     circuitBreaker < 10
   ) {
     result = result.replace(
-      /([a-z])([0-9])/,
+      /([a-z])([0-9])(?![A-Z][a-z])/,
       (_all, $1: string, $2: string) =>
         `${$1.toLowerCase()}_${$2.toLowerCase()}`,
     );
@@ -208,11 +208,17 @@ export type ToSnake<S extends string | number | symbol> = S extends string
           ? Tail extends CapitalLetters /* is 'abCD' where Caps = 'C' */
             ? `${ToSnake<Head>}_${ToSnake<Caps>}_${Lowercase<Tail>}` /* aBCD Tail = 'D', Head = 'aB' */
             : Tail extends `${CapitalLetters}${string}` /* is 'aBCd' where Caps = 'B' */
-            ? Head extends Numbers
+            ? Caps extends Numbers
+              ? `${ToSnake<Head>}${Caps}_${ToSnake<Tail>}` /* 's3Id' => 's3_id' */
+              : Head extends Numbers
               ? never /* stop union type forming */
               : Head extends `${string}${Numbers}`
               ? never /* stop union type forming */
               : `${Head}_${ToSnake<Caps>}_${ToSnake<Tail>}` /* 'aBCd' => `${'a'}_${Lowercase<'B'>}_${ToSnake<'Cd'>}` */
+            : Tail extends `${LowercaseLetters}${string}`
+            ? Head extends `${string}${Numbers}`
+              ? `${Head}_${Lowercase<Caps>}${ToSnake<Tail>}` /* 's3Id' => 's3_id' */
+              : `${ToSnake<Head>}_${Lowercase<Caps>}${ToSnake<Tail>}` /* 'aBcD' where Caps = 'B' tail starts as lowercase */
             : `${ToSnake<Head>}_${Lowercase<Caps>}${ToSnake<Tail>}` /* 'aBcD' where Caps = 'B' tail starts as lowercase */
           : never
         : never
@@ -273,6 +279,34 @@ type CapitalLetters =
   | 'X'
   | 'Y'
   | 'Z';
+
+type LowercaseLetters =
+  | 'a'
+  | 'b'
+  | 'c'
+  | 'd'
+  | 'e'
+  | 'f'
+  | 'g'
+  | 'h'
+  | 'i'
+  | 'j'
+  | 'k'
+  | 'l'
+  | 'm'
+  | 'n'
+  | 'o'
+  | 'p'
+  | 'q'
+  | 'r'
+  | 's'
+  | 't'
+  | 'u'
+  | 'v'
+  | 'w'
+  | 'x'
+  | 'y'
+  | 'z';
 
 type Numbers = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
 

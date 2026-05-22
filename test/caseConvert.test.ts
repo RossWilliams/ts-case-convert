@@ -252,6 +252,7 @@ describe('Regular expressions', () => {
     expect(toSnake('abcE25D50')).toEqual('abc_e25_d50');
     expect(toSnake('abc25D50')).toEqual('abc_25_d50');
     expect(toSnake('abc25A50')).toEqual('abc_25_a50');
+    expect(toSnake('s3Id')).toEqual('s3_id');
   });
 });
 
@@ -315,6 +316,9 @@ type T25 = ToSnake<'a'>;
 const _s25: AssertEqual<T25, 'a'> = true;
 type T36 = ToSnake<'abc1'>;
 const _s36: AssertEqual<T36, 'abc_1'> = true;
+
+type T37 = ToSnake<'s3Id'>;
+const _s37: AssertEqual<T37, 's3_id'> = true;
 
 interface I24 {
   optionalObject?: {

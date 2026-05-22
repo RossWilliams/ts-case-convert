@@ -7,6 +7,14 @@ import {
 } from '../src/caseConvert';
 
 describe('bug fixes', () => {
+  it('#86 - objectToSnake round trips numeric snake case words after objectToCamel', () => {
+    const snakeObject = { s3_id: 'id' };
+    const roundTripped = objectToSnake(objectToCamel(snakeObject));
+
+    expect(roundTripped).toEqual(snakeObject);
+    expect(roundTripped.s3_id).toEqual('id');
+  });
+
   it('#50 - Does not handle an array of objects correctly', () => {
     interface MyObject {
       index: number;
@@ -138,7 +146,6 @@ describe('bug fixes', () => {
 
     expect(convertedSnakeObj.dateKey instanceof Date).toBeTruthy();
     expect(convertedSnakeObj.nested.moreNested instanceof Date).toBeTruthy();
-    console.log(convertedSnakeObj.array);
     expect(convertedSnakeObj.array[0] instanceof Date).toBeTruthy();
   });
 
