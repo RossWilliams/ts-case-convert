@@ -68,6 +68,12 @@ pnpm run tag
 git push origin main --follow-tags
 ```
 
+## GitHub Release
+
+```sh
+pnpm run github-release
+```
+
 ## Useful Commands
 
 ```sh
@@ -79,5 +85,6 @@ pnpm run build
 pnpm run release
 pnpm run publish --otp 123_456
 pnpm run tag
+pnpm run github-release
 pnpm run upgrade
 ```

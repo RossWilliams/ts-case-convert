@@ -13,6 +13,7 @@
     "lint": "eslint --fix --no-error-on-unmatched-pattern src test scripts",
     "package": "mkdir -p dist/js && mv $(npm pack) dist/js/",
     "publish": "npm publish \"dist/js/ts-case-convert-$(cat dist/version.txt).tgz\" --tag latest",
+    "github-release": "gh release create \"$(cat dist/releasetag.txt)\" \"dist/js/ts-case-convert-$(cat dist/version.txt).tgz\" --title \"$(cat dist/releasetag.txt)\" --notes-file dist/changelog.md --verify-tag",
     "release": "rm -fr dist && pnpm run bump && pnpm run build && pnpm run unbump",
     "tag": "node scripts/tag-version.js",
     "test": "jest --passWithNoTests --updateSnapshot",
