@@ -51,6 +51,10 @@ function convertObject<
 }
 
 export function toCamel<T extends string>(term: T): ToCamel<T> {
+  if (isNumericKey(term)) {
+    return term as ToCamel<T>;
+  }
+
   return (
     term.length === 1
       ? term.toLowerCase()
@@ -65,6 +69,10 @@ export function objectToCamel<T extends object>(obj: T): ObjectToCamel<T> {
 }
 
 export function toSnake<T extends string>(term: T): ToSnake<T> {
+  if (isNumericKey(term)) {
+    return term as ToSnake<T>;
+  }
+
   let result: string = term;
   let circuitBreaker = 0;
 
@@ -113,6 +121,10 @@ export function objectToScreamingSnake<T extends object>(
 }
 
 export function toPascal<T extends string>(term: T): ToPascal<T> {
+  if (isNumericKey(term)) {
+    return term as ToPascal<T>;
+  }
+
   return toCamel(term).replace(/^([a-z])/, (m) =>
     m[0].toUpperCase(),
   ) as ToPascal<T>;
@@ -123,7 +135,9 @@ export function objectToPascal<T extends object>(obj: T): ObjectToPascal<T> {
 }
 
 export type ToCamel<S extends string | number | symbol> = S extends string
-  ? S extends `${infer Head}_${infer Tail}`
+  ? S extends NumericKey
+    ? S
+    : S extends `${infer Head}_${infer Tail}`
     ? `${ToCamel<Uncapitalize<Head>>}${Capitalize<ToCamel<Tail>>}`
     : S extends `${infer Head}-${infer Tail}`
     ? `${ToCamel<Uncapitalize<Head>>}${Capitalize<ToCamel<Tail>>}`
@@ -146,7 +160,9 @@ export type ObjectToCamel<T extends object | undefined | null> =
       };
 
 export type ToPascal<S extends string | number | symbol> = S extends string
-  ? S extends `${infer Head}_${infer Tail}`
+  ? S extends NumericKey
+    ? S
+    : S extends `${infer Head}_${infer Tail}`
     ? `${Capitalize<ToCamel<Head>>}${Capitalize<ToCamel<Tail>>}`
     : S extends `${infer Head}-${infer Tail}`
     ? `${Capitalize<ToCamel<Head>>}${Capitalize<ToCamel<Tail>>}`
@@ -169,7 +185,9 @@ export type ObjectToPascal<T extends object | undefined | null> =
       };
 
 export type ToSnake<S extends string | number | symbol> = S extends string
-  ? S extends `${infer Head}${CapitalChars}${infer Tail}` // string has a capital char somewhere
+  ? S extends NumericKey
+    ? S
+    : S extends `${infer Head}${CapitalChars}${infer Tail}` // string has a capital char somewhere
     ? Head extends '' // there is a capital char in the first position
       ? Tail extends ''
         ? Lowercase<S> /*  'A' */
@@ -259,6 +277,8 @@ export type ObjectToScreamingSnake<T extends object | undefined | null> =
 
 type CaseMode = 'camel' | 'pascal' | 'snake' | 'screamingSnake';
 
+type NumericKey = `${number}`;
+
 type Convert<T extends object | undefined | null, Mode extends CaseMode> =
   Mode extends 'camel'
     ? ObjectToCamel<T>
@@ -279,6 +299,10 @@ type ConvertObjectValue<T, Mode extends CaseMode> = T extends Array<
   : T extends object | undefined | null
   ? Convert<T, Mode>
   : T;
+
+function isNumericKey(term: string): boolean {
+  return /^-?\d+(?:\.\d+)?$/.test(term);
+}
 
 type CapitalLetters =
   | 'A'

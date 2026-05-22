@@ -289,11 +289,17 @@ type AssertEqual<T, Expected> = NotAny<
 
 type T0 = ToCamel<'hello_world'>;
 const _t0: AssertEqual<T0, 'helloWorld'> = true;
+type T01 = ToCamel<'-1'>;
+const _t01: AssertEqual<T01, '-1'> = true;
 
 type T1 = ToSnake<'helloWorld'>;
 const _s1: AssertEqual<T1, 'hello_world'> = true;
+type T101 = ToSnake<'-1'>;
+const _s101: AssertEqual<T101, '-1'> = true;
 type TS1 = ToScreamingSnake<'helloWorld'>;
 const _ss1: AssertEqual<TS1, 'HELLO_WORLD'> = true;
+type TS101 = ToScreamingSnake<'-1'>;
+const _ss101: AssertEqual<TS101, '-1'> = true;
 type T2 = ToSnake<'theQuickBrownFoxJumpsOver'>;
 const _s2: AssertEqual<T2, 'the_quick_brown_fox_jumps_over'> = true;
 type T3 = ToSnake<'abc'>;
@@ -417,6 +423,8 @@ const _t32: AssertEqual<T32, 'abcDefJklMno'> = true;
 
 type T33 = ToPascal<'abc_def-jkl_mno'>;
 const _t33: AssertEqual<T33, 'AbcDefJklMno'> = true;
+type T331 = ToPascal<'-1'>;
+const _t331: AssertEqual<T331, '-1'> = true;
 
 type T34 = ToPascal<'abc_def_jkl_mno'>;
 const _t34: AssertEqual<T34, 'AbcDefJklMno'> = true;

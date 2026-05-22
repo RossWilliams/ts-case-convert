@@ -3,10 +3,25 @@ import {
   ObjectToPascal,
   ObjectToSnake,
   objectToCamel,
+  objectToPascal,
+  objectToScreamingSnake,
   objectToSnake,
 } from '../src/caseConvert';
 
 describe('bug fixes', () => {
+  it('preserves signed numeric string keys without collision', () => {
+    const input = {
+      '-1': 'negative one',
+      '1': 'positive one',
+      '0': 'zero',
+    };
+
+    expect(objectToCamel(input)).toEqual(input);
+    expect(objectToSnake(input)).toEqual(input);
+    expect(objectToPascal(input)).toEqual(input);
+    expect(objectToScreamingSnake(input)).toEqual(input);
+  });
+
   it('preserves required undefined property values while converting object keys', () => {
     type SnakeObject = {
       property_name: undefined;
