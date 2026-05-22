@@ -7,6 +7,25 @@ import {
 } from '../src/caseConvert';
 
 describe('bug fixes', () => {
+  it('#81 - preserves primitive union array item types while converting object keys', () => {
+    type SnakeObject = {
+      prop_name: ('a' | 'b' | 'c')[];
+    };
+    type CamelObject = {
+      propName: ('a' | 'b' | 'c')[];
+    };
+
+    const snakeAssignedToCamelType: ObjectToCamel<SnakeObject> = {
+      propName: ['a', 'b', 'c'],
+    };
+    const camelObject: CamelObject = objectToCamel({
+      prop_name: ['a', 'b', 'c'],
+    } as SnakeObject);
+
+    expect(snakeAssignedToCamelType.propName).toEqual(['a', 'b', 'c']);
+    expect(camelObject.propName).toEqual(['a', 'b', 'c']);
+  });
+
   it('#86 - objectToSnake round trips numeric snake case words after objectToCamel', () => {
     const snakeObject = { s3_id: 'id' };
     const roundTripped = objectToSnake(objectToCamel(snakeObject));

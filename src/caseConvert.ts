@@ -119,9 +119,7 @@ export type ObjectToCamel<T extends object | undefined | null> =
     : T extends null
     ? null
     : T extends Array<infer ArrayType>
-    ? ArrayType extends object
-      ? Array<ObjectToCamel<ArrayType>>
-      : Array<ArrayType>
+    ? Array<ArrayItemToCamel<ArrayType>>
     : T extends Uint8Array
     ? Uint8Array
     : T extends Date
@@ -131,9 +129,7 @@ export type ObjectToCamel<T extends object | undefined | null> =
           | Array<infer ArrayType>
           | undefined
           | null
-          ? ArrayType extends object
-            ? Array<ObjectToCamel<ArrayType>>
-            : Array<ArrayType>
+          ? Array<ArrayItemToCamel<ArrayType>>
           : T[K] extends object | undefined | null
           ? ObjectToCamel<T[K]>
           : T[K];
@@ -153,9 +149,7 @@ export type ObjectToPascal<T extends object | undefined | null> =
     : T extends null
     ? null
     : T extends Array<infer ArrayType>
-    ? ArrayType extends object
-      ? Array<ObjectToPascal<ArrayType>>
-      : Array<ArrayType>
+    ? Array<ArrayItemToPascal<ArrayType>>
     : T extends Uint8Array
     ? Uint8Array
     : T extends Date
@@ -165,9 +159,7 @@ export type ObjectToPascal<T extends object | undefined | null> =
           | Array<infer ArrayType>
           | undefined
           | null
-          ? ArrayType extends object
-            ? Array<ObjectToPascal<ArrayType>>
-            : Array<ArrayType>
+          ? Array<ArrayItemToPascal<ArrayType>>
           : T[K] extends object | undefined | null
           ? ObjectToPascal<T[K]>
           : T[K];
@@ -232,9 +224,7 @@ export type ObjectToSnake<T extends object | undefined | null> =
     : T extends null
     ? null
     : T extends Array<infer ArrayType>
-    ? ArrayType extends object
-      ? Array<ObjectToSnake<ArrayType>>
-      : Array<ArrayType>
+    ? Array<ArrayItemToSnake<ArrayType>>
     : T extends Uint8Array
     ? Uint8Array
     : T extends Date
@@ -244,13 +234,17 @@ export type ObjectToSnake<T extends object | undefined | null> =
           | Array<infer ArrayType>
           | undefined
           | null
-          ? ArrayType extends object
-            ? Array<ObjectToSnake<ArrayType>>
-            : Array<ArrayType>
+          ? Array<ArrayItemToSnake<ArrayType>>
           : T[K] extends object | undefined | null
           ? ObjectToSnake<T[K]>
           : T[K];
       };
+
+type ArrayItemToCamel<T> = T extends object ? ObjectToCamel<T> : T;
+
+type ArrayItemToPascal<T> = T extends object ? ObjectToPascal<T> : T;
+
+type ArrayItemToSnake<T> = T extends object ? ObjectToSnake<T> : T;
 
 type CapitalLetters =
   | 'A'
