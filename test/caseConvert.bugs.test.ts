@@ -2,11 +2,17 @@ import {
   ObjectToCamel,
   ObjectToPascal,
   ObjectToSnake,
+  ToSnake,
   objectToCamel,
   objectToPascal,
   objectToScreamingSnake,
   objectToSnake,
 } from '../src/caseConvert';
+
+type NotAny<T> = T[] extends true[] ? T : T[] extends false[] ? T : never;
+type AssertEqual<T, Expected> = NotAny<
+  T extends Expected ? (Expected extends T ? true : false) : false
+>;
 
 describe('bug fixes', () => {
   it('preserves signed numeric string keys without collision', () => {
@@ -63,6 +69,38 @@ describe('bug fixes', () => {
 
     expect(roundTripped).toEqual(snakeObject);
     expect(roundTripped.s3_id).toEqual('id');
+  });
+
+  it('#86 - objectToSnake round trips multi-digit numeric snake case words after objectToCamel', () => {
+    const snakeObject = {
+      a23_request: null,
+      http2_status: 'ok',
+      nested: {
+        api10_response: 'ready',
+      },
+    };
+    const roundTripped = objectToSnake(objectToCamel(snakeObject));
+
+    expect(roundTripped).toEqual(snakeObject);
+    expect(roundTripped.a23_request).toBeNull();
+    expect(roundTripped.http2_status).toEqual('ok');
+    expect(roundTripped.nested.api10_response).toEqual('ready');
+  });
+
+  it('#86 - still splits terminal number suffixes when converting to snake case', () => {
+    const snakeObject = objectToSnake({
+      myItem1: 'value',
+      nestedItem: {
+        nextValue23: 'nested',
+      },
+    });
+
+    expect(snakeObject).toEqual({
+      my_item_1: 'value',
+      nested_item: {
+        next_value_23: 'nested',
+      },
+    });
   });
 
   it('#50 - Does not handle an array of objects correctly', () => {
@@ -278,3 +316,18 @@ const _pascalDate: ObjectToPascal<{
   ArrDate: [new Date()],
   Nested: { InnerDate: new Date() },
 };
+
+type _multiDigitSnakeWord = AssertEqual<ToSnake<'a23Request'>, 'a23_request'>;
+const _multiDigitSnakeWordCheck: _multiDigitSnakeWord = true;
+
+type _multiDigitMiddleSnakeWord = AssertEqual<
+  ToSnake<'api10Response'>,
+  'api10_response'
+>;
+const _multiDigitMiddleSnakeWordCheck: _multiDigitMiddleSnakeWord = true;
+
+type _singleDigitMiddleSnakeWord = AssertEqual<ToSnake<'http2Status'>, 'http2_status'>;
+const _singleDigitMiddleSnakeWordCheck: _singleDigitMiddleSnakeWord = true;
+
+type _terminalNumberSuffix = AssertEqual<ToSnake<'nextValue23'>, 'next_value_23'>;
+const _terminalNumberSuffixCheck: _terminalNumberSuffix = true;

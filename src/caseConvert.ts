@@ -64,12 +64,9 @@ export function objectToCamel<T extends object>(obj: T): ObjectToCamel<T> {
   return convertObject(obj, toCamel);
 }
 
-function toSnakeWithSplitNumbers<
-  T extends string,
-  SplitNumbers extends boolean,
->(term: T, splitNumbers: SplitNumbers): ToSnake<T, SplitNumbers> {
+function toSnakeWithSplitNumbers(term: string, splitNumbers: boolean): string {
   if (isNumericKey(term)) {
-    return term as ToSnake<T, SplitNumbers>;
+    return term;
   }
 
   let result: string = term;
@@ -77,13 +74,14 @@ function toSnakeWithSplitNumbers<
 
   if (splitNumbers) {
     while (
-      (/([a-z])([0-9])(?![A-Z][a-z])/.exec(result)?.length || 0) > 2 &&
+      (/([a-z])([0-9]+)(?![0-9]*[A-Z][a-z])/.exec(result)?.length || 0) >
+        2 &&
       circuitBreaker < 10
     ) {
       result = result.replace(
-        /([a-z])([0-9])(?![A-Z][a-z])/,
-        (_all, $1: string, $2: string) =>
-          `${$1.toLowerCase()}_${$2.toLowerCase()}`,
+        /([a-z])([0-9]+)(?![0-9]*[A-Z][a-z])/,
+        (_all, head: string, numbers: string) =>
+          `${head.toLowerCase()}_${numbers.toLowerCase()}`,
       );
 
       circuitBreaker += 1;
@@ -102,27 +100,27 @@ function toSnakeWithSplitNumbers<
     circuitBreaker += 1;
   }
 
-  return result.toLowerCase() as ToSnake<T, SplitNumbers>;
+  return result.toLowerCase();
 }
 
 export function toSnake<T extends string>(term: T): ToSnake<T> {
-  return toSnakeWithSplitNumbers(term, true);
+  return toSnakeWithSplitNumbers(term, true) as ToSnake<T>;
 }
 
 export function toSnakeNoSplitNumbers<T extends string>(
   term: T,
 ): ToSnake<T, false> {
-  return toSnakeWithSplitNumbers(term, false);
+  return toSnakeWithSplitNumbers(term, false) as ToSnake<T, false>;
 }
 
 export function objectToSnake<T extends object>(obj: T): ObjectToSnake<T> {
-  return convertObject(obj, toSnake);
+  return convertObject(obj, (key) => toSnakeWithSplitNumbers(key, true));
 }
 
 export function objectToSnakeNoSplitNumbers<T extends object>(
   obj: T,
 ): ObjectToSnake<T, false> {
-  return convertObject(obj, toSnakeNoSplitNumbers);
+  return convertObject(obj, (key) => toSnakeWithSplitNumbers(key, false));
 }
 
 export function toScreamingSnake<T extends string>(
@@ -217,81 +215,11 @@ export type ToSnake<
   S extends string | number | symbol,
   SplitNumbers extends boolean = true,
 > = S extends string
-  ? S extends NumericKey
+  ? string extends S
+    ? string
+    : S extends NumericKey
     ? S
-    : S extends `${infer Head}${CapitalChars}${infer Tail}` // string has a capital char somewhere
-    ? Head extends '' // there is a capital char in the first position
-      ? Tail extends ''
-        ? Lowercase<S> /*  'A' */
-        : S extends `${infer Caps}${Tail}` // tail exists, has capital characters
-        ? Caps extends CapitalChars
-          ? Tail extends CapitalLetters
-            ? `${Lowercase<Caps>}_${Lowercase<Tail>}` /* 'AB' */
-            : Tail extends `${CapitalLetters}${string}`
-            ? `${ToSnake<Caps>}_${ToSnake<Tail>}` /* first tail char is upper? 'ABcd' */
-            : `${ToSnake<Caps>}${ToSnake<Tail>}` /* 'AbCD','AbcD',  */ /* TODO: if tail is only numbers, append without underscore */
-          : never /* never reached, used for inference of caps */
-        : never
-      : Tail extends '' /* 'aB' 'abCD' 'ABCD' 'AB' */
-      ? S extends `${Head}${infer Caps}`
-        ? Caps extends CapitalChars
-          ? Head extends Lowercase<Head> /* 'abcD' */
-            ? Caps extends Numbers
-              ? // Head exists and is lowercase, tail does not, Caps is a number, we may be in a sub-select
-                // if head ends with number, don't split head an Caps, keep contiguous numbers together
-                SplitNumbers extends false
-                ? `${ToSnake<Head, SplitNumbers>}${Caps}`
-                : Head extends `${string}${Numbers}`
-                ? never
-                : // head does not end in number, safe to split. 'abc2' -> 'abc_2'
-                  `${ToSnake<Head, SplitNumbers>}_${Caps}`
-              : `${ToSnake<Head, SplitNumbers>}_${ToSnake<
-                  Caps,
-                  SplitNumbers
-                >}` /* 'abcD' 'abc25' */
-            : never /* stop union type forming */
-          : never
-        : never /* never reached, used for inference of caps */
-      : S extends `${Head}${infer Caps}${Tail}` /* 'abCd' 'ABCD' 'AbCd' 'ABcD' */
-      ? Caps extends CapitalChars
-        ? Head extends Lowercase<Head> /* is 'abCd' 'abCD' ? */
-          ? Tail extends CapitalLetters /* is 'abCD' where Caps = 'C' */
-            ? `${ToSnake<Head, SplitNumbers>}_${ToSnake<
-                Caps,
-                SplitNumbers
-              >}_${Lowercase<Tail>}` /* aBCD Tail = 'D', Head = 'aB' */
-            : Tail extends `${CapitalLetters}${string}` /* is 'aBCd' where Caps = 'B' */
-            ? Caps extends Numbers
-              ? `${ToSnake<Head, SplitNumbers>}${Caps}_${ToSnake<
-                  Tail,
-                  SplitNumbers
-                >}` /* 's3Id' => 's3_id' */
-              : Head extends Numbers
-              ? never /* stop union type forming */
-              : Head extends `${string}${Numbers}`
-              ? never /* stop union type forming */
-              : `${Head}_${ToSnake<Caps, SplitNumbers>}_${ToSnake<
-                  Tail,
-                  SplitNumbers
-                >}` /* 'aBCd' => `${'a'}_${Lowercase<'B'>}_${ToSnake<'Cd'>}` */
-            : Tail extends `${LowercaseLetters}${string}`
-            ? Head extends `${string}${Numbers}`
-              ? `${Head}_${Lowercase<Caps>}${ToSnake<
-                  Tail,
-                  SplitNumbers
-                >}` /* 's3Id' => 's3_id' */
-              : `${ToSnake<Head, SplitNumbers>}_${Lowercase<Caps>}${ToSnake<
-                  Tail,
-                  SplitNumbers
-                >}` /* 'aBcD' where Caps = 'B' tail starts as lowercase */
-            : `${ToSnake<Head, SplitNumbers>}_${Lowercase<Caps>}${ToSnake<
-                Tail,
-                SplitNumbers
-              >}` /* 'aBcD' where Caps = 'B' tail starts as lowercase */
-          : never
-        : never
-      : never
-    : S /* 'abc'  */
+    : SnakeScan<S, '', 'start', SplitNumbers>
   : never;
 
 export type ObjectToSnake<
@@ -346,6 +274,69 @@ export type ObjectToScreamingSnake<
 type CaseMode = 'camel' | 'pascal' | 'snake' | 'screamingSnake';
 
 type NumericKey = `${number}`;
+
+type SnakeScan<
+  S extends string,
+  Acc extends string,
+  Previous extends CharacterKind,
+  SplitNumbers extends boolean,
+> = S extends `${infer Head}${infer Tail}`
+  ? Head extends Numbers
+    ? TakeNumberRun<S> extends [
+        infer NumberRun extends string,
+        infer AfterNumber extends string,
+      ]
+      ? SnakeScan<
+          AfterNumber,
+          `${Acc}${NumberSeparator<
+            Previous,
+            AfterNumber,
+            SplitNumbers
+          >}${NumberRun}`,
+          'number',
+          SplitNumbers
+        >
+      : never
+    : Head extends CapitalLetters
+    ? SnakeScan<
+        Tail,
+        `${Acc}${WordSeparator<Acc>}${Lowercase<Head>}`,
+        'upper',
+        SplitNumbers
+      >
+    : Head extends LowercaseLetters
+    ? SnakeScan<Tail, `${Acc}${Head}`, 'lower', SplitNumbers>
+    : SnakeScan<Tail, `${Acc}${Head}`, 'other', SplitNumbers>
+  : Acc;
+
+type TakeNumberRun<
+  S extends string,
+  Acc extends string = '',
+> = S extends `${infer Head}${infer Tail}`
+  ? Head extends Numbers
+    ? TakeNumberRun<Tail, `${Acc}${Head}`>
+    : [Acc, S]
+  : [Acc, ''];
+
+type NumberSeparator<
+  Previous extends CharacterKind,
+  AfterNumber extends string,
+  SplitNumbers extends boolean,
+> = SplitNumbers extends false
+  ? ''
+  : Previous extends 'lower'
+  ? AfterNumber extends `${CapitalLetters}${LowercaseLetters}${string}`
+    ? ''
+    : '_'
+  : '';
+
+type WordSeparator<Acc extends string> = Acc extends ''
+  ? ''
+  : Acc extends `${string}_`
+  ? ''
+  : '_';
+
+type CharacterKind = 'start' | 'lower' | 'upper' | 'number' | 'other';
 
 type Convert<
   T extends object | undefined | null,
@@ -439,5 +430,3 @@ type LowercaseLetters =
   | 'z';
 
 type Numbers = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
-
-type CapitalChars = CapitalLetters | Numbers;
