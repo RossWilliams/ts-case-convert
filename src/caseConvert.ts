@@ -88,17 +88,10 @@ function toSnakeWithSplitNumbers(term: string, splitNumbers: boolean): string {
     }
   }
 
-  while (
-    (/(.+?)([A-Z])/.exec(result)?.length || 0) > 2 &&
-    circuitBreaker < 10
-  ) {
-    result = result.replace(
-      /(.+?)([A-Z])/,
-      (_all, $1: string, $2: string) =>
-        `${$1.toLowerCase()}_${$2.toLowerCase()}`,
-    );
-    circuitBreaker += 1;
-  }
+  // Match only the character before a capital to avoid rescanning long prefixes.
+  result = result.replace(/(.)(?=[A-Z])/g, (head: string) =>
+    circuitBreaker++ < 10 ? `${head}_` : head,
+  );
 
   return result.toLowerCase();
 }
