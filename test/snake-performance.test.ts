@@ -22,18 +22,6 @@ describe.each([
     expect(performance.now() - start).toBeLessThan(1_000);
   });
 
-  it.each([
-    ['', ''],
-    ['A', 'a'],
-    ['ABC', 'a_b_c'],
-    ['_ABC', '__a_b_c'],
-    ['a\nBC\rDE\u2028FG\u2029HI', 'a\nb_c\rd_e\u2028f_g\u2029h_i'],
-    ['ABCDEFGHIJKLM', 'a_b_c_d_e_f_g_h_i_j_klm'],
-  ])('given %j, when converting capitals, then returns %j', (input, expected) => {
-    expect(converters.toSnake(input)).toBe(expected);
-    expect(converters.toScreamingSnake(input)).toBe(expected.toUpperCase());
-  });
-
   it('given a long lowercase suffix after a capital, when converting, then preserves the word boundary', () => {
     const suffix = 'a'.repeat(100_000);
 
@@ -41,7 +29,16 @@ describe.each([
   });
 });
 
-it('given number splits, when converting capitals, then preserves the shared replacement limit', () => {
-  expect(standard.toSnake('a1b2ABCDEFGHIJK')).toBe('a_1b_2_a_b_c_d_e_f_g_hijk');
-  expect(noSplitNumbers.toSnake('a1b2ABCDEFGHIJK')).toBe('a1b2_a_b_c_d_e_f_g_h_i_jk');
+it('converts every boundary without a replacement limit', () => {
+  const input = 'aBaBaBaBaBaBaBaBaBaBaBaBaB';
+  const expected = 'a_ba_ba_ba_ba_ba_ba_ba_ba_ba_ba_ba_ba_b';
+  expect(standard.toSnake(input)).toBe(expected);
+  expect(noSplitNumbers.toSnake(input)).toBe(expected);
+});
+
+it('splits every digit run without a replacement limit', () => {
+  const input = 'a1b2c3d4e5f6g7h8i9j0k1l2';
+  const expected: 'a_1b_2c_3d_4e_5f_6g_7h_8i_9j_0k_1l_2' = standard.toSnake(input);
+  expect(expected).toBe('a_1b_2c_3d_4e_5f_6g_7h_8i_9j_0k_1l_2');
+  expect(noSplitNumbers.toSnake(input)).toBe(input);
 });

@@ -505,108 +505,131 @@ const _pascalUndefined: ObjectToPascal<{
   PropName: undefined,
 };
 
-// Issue #87: keep existing runtime spellings and make the types describe them.
+// Issue #87: literal return types must match separator conversion at runtime.
 describe.each([
   ['standard', standard],
   ['no-split-numbers', noSplitNumbers],
 ] as const)('%s separator type regression #87', (_name, converters) => {
-  it('describes unchanged camel values for capitals, doubled and trailing separators', () => {
-    const output: readonly ['aPI_VERSION', 'content-Type', 'a_B', 'trailing_'] = [
+  it('normalizes separated words regardless of their original case', () => {
+    const camel: readonly ['apiVersion', 'contentType', 'contentType', 'contentType'] = [
       converters.toCamel('API_VERSION'),
       converters.toCamel('Content-Type'),
-      converters.toCamel('a__b'),
-      converters.toCamel('trailing_'),
+      converters.toCamel('CONTENT-TYPE'),
+      converters.toCamel('content-type'),
     ];
-    expect(output).toEqual(['aPI_VERSION', 'content-Type', 'a_B', 'trailing_']);
-  });
-
-  it('describes unchanged Pascal values for capitals, doubled and trailing separators', () => {
-    const output: readonly ['API_VERSION', 'Content-Type', 'A_B', 'Trailing_'] = [
+    const pascal: readonly ['ApiVersion', 'ContentType', 'ContentType', 'ContentType'] = [
       converters.toPascal('API_VERSION'),
       converters.toPascal('Content-Type'),
-      converters.toPascal('a__b'),
-      converters.toPascal('trailing_'),
+      converters.toPascal('CONTENT-TYPE'),
+      converters.toPascal('content-type'),
     ];
-    expect(output).toEqual(['API_VERSION', 'Content-Type', 'A_B', 'Trailing_']);
-  });
-
-  it('describes unchanged snake values, including underscores before capitals', () => {
-    const output: readonly ['a_p_i__v_e_r_s_i_o_n', 'content-_type', 'a__b', 'trailing_'] = [
+    const snake: readonly ['api_version', 'content_type', 'content_type', 'content_type'] = [
       converters.toSnake('API_VERSION'),
       converters.toSnake('Content-Type'),
-      converters.toSnake('a__b'),
-      converters.toSnake('trailing_'),
+      converters.toSnake('CONTENT-TYPE'),
+      converters.toSnake('content-type'),
     ];
-    expect(output).toEqual(['a_p_i__v_e_r_s_i_o_n', 'content-_type', 'a__b', 'trailing_']);
-  });
-
-  it('describes unchanged screaming snake values', () => {
-    const output: readonly ['A_P_I__V_E_R_S_I_O_N', 'CONTENT-_TYPE', 'A__B', 'TRAILING_'] = [
+    const screaming: readonly ['API_VERSION', 'CONTENT_TYPE', 'CONTENT_TYPE', 'CONTENT_TYPE'] = [
       converters.toScreamingSnake('API_VERSION'),
       converters.toScreamingSnake('Content-Type'),
-      converters.toScreamingSnake('a__b'),
-      converters.toScreamingSnake('trailing_'),
+      converters.toScreamingSnake('CONTENT-TYPE'),
+      converters.toScreamingSnake('content-type'),
     ];
-    expect(output).toEqual(['A_P_I__V_E_R_S_I_O_N', 'CONTENT-_TYPE', 'A__B', 'TRAILING_']);
+    expect(camel).toEqual(['apiVersion', 'contentType', 'contentType', 'contentType']);
+    expect(pascal).toEqual(['ApiVersion', 'ContentType', 'ContentType', 'ContentType']);
+    expect(snake).toEqual(['api_version', 'content_type', 'content_type', 'content_type']);
+    expect(screaming).toEqual(['API_VERSION', 'CONTENT_TYPE', 'CONTENT_TYPE', 'CONTENT_TYPE']);
   });
 
-  it('describes unchanged one-pass replacement of mixed and adjacent separators', () => {
-    const camel: readonly ['a_B', 'a-B', '_Leading', 'aBC', '_', '-'] = [
+  it('ignores repeated, mixed, leading and trailing separators', () => {
+    const camel: readonly ['aB', 'aB', 'aB', 'leading', 'trailing', '', ''] = [
+      converters.toCamel('a__b'),
       converters.toCamel('a_-b'),
       converters.toCamel('a-_b'),
       converters.toCamel('__leading'),
-      converters.toCamel('a_b_c'),
+      converters.toCamel('trailing_'),
       converters.toCamel('_'),
       converters.toCamel('-'),
     ];
-    const pascal: readonly ['A_B', 'A-B', '_Leading', 'ABC', '_', '-'] = [
+    const pascal: readonly ['AB', 'AB', 'AB', 'Leading', 'Trailing', '', ''] = [
+      converters.toPascal('a__b'),
       converters.toPascal('a_-b'),
       converters.toPascal('a-_b'),
       converters.toPascal('__leading'),
-      converters.toPascal('a_b_c'),
+      converters.toPascal('trailing_'),
       converters.toPascal('_'),
       converters.toPascal('-'),
     ];
-    expect(camel).toEqual(['a_B', 'a-B', '_Leading', 'aBC', '_', '-']);
-    expect(pascal).toEqual(['A_B', 'A-B', '_Leading', 'ABC', '_', '-']);
+    const snake: readonly ['a_b', 'a_b', 'a_b', 'leading', 'trailing', '', ''] = [
+      converters.toSnake('a__b'),
+      converters.toSnake('a_-b'),
+      converters.toSnake('a-_b'),
+      converters.toSnake('__leading'),
+      converters.toSnake('trailing_'),
+      converters.toSnake('_'),
+      converters.toSnake('-'),
+    ];
+    const screaming: readonly ['A_B', 'A_B', 'A_B', 'LEADING', 'TRAILING', '', ''] = [
+      converters.toScreamingSnake('a__b'),
+      converters.toScreamingSnake('a_-b'),
+      converters.toScreamingSnake('a-_b'),
+      converters.toScreamingSnake('__leading'),
+      converters.toScreamingSnake('trailing_'),
+      converters.toScreamingSnake('_'),
+      converters.toScreamingSnake('-'),
+    ];
+    expect(camel).toEqual(['aB', 'aB', 'aB', 'leading', 'trailing', '', '']);
+    expect(pascal).toEqual(['AB', 'AB', 'AB', 'Leading', 'Trailing', '', '']);
+    expect(snake).toEqual(['a_b', 'a_b', 'a_b', 'leading', 'trailing', '', '']);
+    expect(screaming).toEqual(['A_B', 'A_B', 'A_B', 'LEADING', 'TRAILING', '', '']);
+  });
+
+  it('preserves internal capitals without separators and splits each capital for snake case', () => {
+    const camel: 'abcDEF' = converters.toCamel('AbcDEF');
+    const pascal: 'AbcDEF' = converters.toPascal('abcDEF');
+    const snake: 'abc_d_e_f' = converters.toSnake('abcDEF');
+    const screaming: 'ABC_D_E_F' = converters.toScreamingSnake('abcDEF');
+    expect([camel, pascal, snake, screaming]).toEqual([
+      'abcDEF', 'AbcDEF', 'abc_d_e_f', 'ABC_D_E_F',
+    ]);
   });
 
   it('retains unknown template suffixes instead of declaring a fixed output', () => {
+    const numericPrefix = (input: `${number}_a`) => converters.toCamel(input);
+    const uppercaseExponent: ReturnType<typeof numericPrefix> = '1E+21A';
+    expect(numericPrefix('1E+21_a')).toBe(uppercaseExponent);
     const camel = (input: `prefix_${string}`) => converters.toCamel(input);
     const pascal = (input: `prefix_${string}`) => converters.toPascal(input);
     const number = (input: `prefix_${number}`) => converters.toCamel(input);
-    const camelType: AssertEqual<ReturnType<typeof camel>, `prefix${string}`> = true;
-    const pascalType: AssertEqual<ReturnType<typeof pascal>, `Prefix${string}`> = true;
-    const numberType: AssertEqual<ReturnType<typeof number>, `prefix${string}`> = true;
-    expect([camelType, pascalType, numberType]).toEqual([true, true, true]);
-    expect(camel('prefix_hello')).toBe('prefixHello');
-    expect(camel('prefix_WORLD')).toBe('prefix_WORLD');
-    expect(pascal('prefix_hello')).toBe('PrefixHello');
-    expect(pascal('prefix_WORLD')).toBe('Prefix_WORLD');
-    expect(number('prefix_42')).toBe('prefix42');
+    const camelOutputs: ReturnType<typeof camel>[] = ['prefixHello', 'prefixWorld'];
+    const pascalOutputs: ReturnType<typeof pascal>[] = ['PrefixHello', 'PrefixWorld'];
+    const numberOutputs: ReturnType<typeof number>[] = ['prefix42', 'prefix17'];
+    expect([camel('prefix_hello'), camel('prefix_WORLD')]).toEqual(camelOutputs);
+    expect([pascal('prefix_hello'), pascal('prefix_WORLD')]).toEqual(pascalOutputs);
+    expect([number('prefix_42'), number('prefix_17')]).toEqual(numberOutputs);
   });
 
-  it('matches declared keys to unchanged recursive object and array values', () => {
+  it('matches declared keys to recursive object and array values', () => {
     const input = { API_VERSION: { 'Content-Type': [{ a__b: 1, trailing_: 2 }] } };
     const camel = converters.objectToCamel(input);
     const pascal = converters.objectToPascal(input);
     const snake = converters.objectToSnake(input);
     const screaming = converters.objectToScreamingSnake(input);
     const values: number[] = [
-      camel.aPI_VERSION['content-Type'][0].a_B,
-      camel.aPI_VERSION['content-Type'][0].trailing_,
-      pascal.API_VERSION['Content-Type'][0].A_B,
-      pascal.API_VERSION['Content-Type'][0].Trailing_,
-      snake.a_p_i__v_e_r_s_i_o_n['content-_type'][0].a__b,
-      snake.a_p_i__v_e_r_s_i_o_n['content-_type'][0].trailing_,
-      screaming.A_P_I__V_E_R_S_I_O_N['CONTENT-_TYPE'][0].A__B,
-      screaming.A_P_I__V_E_R_S_I_O_N['CONTENT-_TYPE'][0].TRAILING_,
+      camel.apiVersion.contentType[0].aB,
+      camel.apiVersion.contentType[0].trailing,
+      pascal.ApiVersion.ContentType[0].AB,
+      pascal.ApiVersion.ContentType[0].Trailing,
+      snake.api_version.content_type[0].a_b,
+      snake.api_version.content_type[0].trailing,
+      screaming.API_VERSION.CONTENT_TYPE[0].A_B,
+      screaming.API_VERSION.CONTENT_TYPE[0].TRAILING,
     ];
     expect(values).toEqual([1, 2, 1, 2, 1, 2, 1, 2]);
-    expect(camel).toEqual({ aPI_VERSION: { 'content-Type': [{ a_B: 1, trailing_: 2 }] } });
-    expect(pascal).toEqual({ API_VERSION: { 'Content-Type': [{ A_B: 1, Trailing_: 2 }] } });
-    expect(snake).toEqual({ a_p_i__v_e_r_s_i_o_n: { 'content-_type': [{ a__b: 1, trailing_: 2 }] } });
-    expect(screaming).toEqual({ A_P_I__V_E_R_S_I_O_N: { 'CONTENT-_TYPE': [{ A__B: 1, TRAILING_: 2 }] } });
+    expect(camel).toEqual({ apiVersion: { contentType: [{ aB: 1, trailing: 2 }] } });
+    expect(pascal).toEqual({ ApiVersion: { ContentType: [{ AB: 1, Trailing: 2 }] } });
+    expect(snake).toEqual({ api_version: { content_type: [{ a_b: 1, trailing: 2 }] } });
+    expect(screaming).toEqual({ API_VERSION: { CONTENT_TYPE: [{ A_B: 1, TRAILING: 2 }] } });
     expect(input).toEqual({ API_VERSION: { 'Content-Type': [{ a__b: 1, trailing_: 2 }] } });
   });
 });

@@ -46,74 +46,101 @@ function convertObject<TInput extends object, TResult>(
   return out;
 }
 
-export function toCamel<T extends string>(term: T): ToCamel<T> {
+// Keep these word boundaries in sync with ConvertKeyScan below.
+function convertKey(term: string, mode: CaseMode, splitNumbers = false): string {
   if (isNumericKey(term)) {
-    return term as ToCamel<T>;
+    return term;
   }
 
-  return (
-    term.length === 1
-      ? term.toLowerCase()
-      : term
-          .replace(/^([A-Z])/, (m) => m[0].toLowerCase())
-          .replace(/[_-]([a-z0-9])/g, (m) => m[1].toUpperCase())
-  ) as ToCamel<T>;
+  const hasSeparators = /[_-]/.test(term);
+  // Existing camel/Pascal names retain every letter after the first.
+  if ((mode === 'camel' || mode === 'pascal') && !hasSeparators) {
+    const first = term.charAt(0);
+    return (mode === 'camel' ? first.toLowerCase() : first.toUpperCase()) + term.slice(1);
+  }
+
+  let result = '';
+  let wordStart = 0;
+  const appendWord = (end: number): void => {
+    if (end === wordStart) {
+      return;
+    }
+    const word = term.slice(wordStart, end).toLowerCase();
+    if (mode === 'snake') {
+      result += `${result ? '_' : ''}${word}`;
+    } else {
+      result += mode === 'pascal' || result !== ''
+        ? word[0].toUpperCase() + word.slice(1)
+        : word;
+    }
+  };
+
+  for (let index = 0; index < term.length; index += 1) {
+    const current = term[index];
+    const previous = term[index - 1] ?? '';
+    if (current === '_' || current === '-') {
+      appendWord(index);
+      wordStart = index + 1;
+    } else if (splitNumbers && isDigit(current)) {
+      let afterNumber = index + 1;
+      while (afterNumber < term.length && isDigit(term[afterNumber])) {
+        afterNumber += 1;
+      }
+      if (isLowercase(previous) &&
+          !(isUppercase(term[afterNumber] ?? '') && isLowercase(term[afterNumber + 1] ?? ''))) {
+        appendWord(index);
+        wordStart = index;
+      }
+      index = afterNumber - 1;
+    } else if (index > wordStart && isUppercase(current) &&
+        (!hasSeparators || isLowercase(previous) || isDigit(previous) ||
+          (isUppercase(previous) && isLowercase(term[index + 1] ?? '')))) {
+      appendWord(index);
+      wordStart = index;
+    }
+  }
+  appendWord(term.length);
+  return result;
+}
+
+function isLowercase(character: string): boolean {
+  return character >= 'a' && character <= 'z';
+}
+
+function isUppercase(character: string): boolean {
+  return character >= 'A' && character <= 'Z';
+}
+
+function isDigit(character: string): boolean {
+  return character >= '0' && character <= '9';
+}
+
+export function toCamel<T extends string>(term: T): ToCamel<T> {
+  return convertKey(term, 'camel') as ToCamel<T>;
 }
 
 export function objectToCamel<T extends object>(obj: T): ObjectToCamel<T> {
   return convertObject(obj, toCamel);
 }
 
-function toSnakeWithSplitNumbers(term: string, splitNumbers: boolean): string {
-  if (isNumericKey(term)) {
-    return term;
-  }
-
-  let result: string = term;
-  let circuitBreaker = 0;
-
-  if (splitNumbers) {
-    while (
-      (/([a-z])([0-9]+)(?![0-9]*[A-Z][a-z])/.exec(result)?.length || 0) >
-        2 &&
-      circuitBreaker < 10
-    ) {
-      result = result.replace(
-        /([a-z])([0-9]+)(?![0-9]*[A-Z][a-z])/,
-        (_all, head: string, numbers: string) =>
-          `${head.toLowerCase()}_${numbers.toLowerCase()}`,
-      );
-
-      circuitBreaker += 1;
-    }
-  }
-
-  // Match only the character before a capital to avoid rescanning long prefixes.
-  result = result.replace(/(.)(?=[A-Z])/g, (head: string) =>
-    circuitBreaker++ < 10 ? `${head}_` : head,
-  );
-
-  return result.toLowerCase();
-}
-
 export function toSnake<T extends string>(term: T): ToSnake<T> {
-  return toSnakeWithSplitNumbers(term, true) as ToSnake<T>;
+  return convertKey(term, 'snake', true) as ToSnake<T>;
 }
 
 export function toSnakeNoSplitNumbers<T extends string>(
   term: T,
 ): ToSnake<T, false> {
-  return toSnakeWithSplitNumbers(term, false) as ToSnake<T, false>;
+  return convertKey(term, 'snake', false) as ToSnake<T, false>;
 }
 
 export function objectToSnake<T extends object>(obj: T): ObjectToSnake<T> {
-  return convertObject(obj, (key) => toSnakeWithSplitNumbers(key, true));
+  return convertObject(obj, toSnake);
 }
 
 export function objectToSnakeNoSplitNumbers<T extends object>(
   obj: T,
 ): ObjectToSnake<T, false> {
-  return convertObject(obj, (key) => toSnakeWithSplitNumbers(key, false));
+  return convertObject(obj, toSnakeNoSplitNumbers);
 }
 
 export function toScreamingSnake<T extends string>(
@@ -141,50 +168,15 @@ export function objectToScreamingSnakeNoSplitNumbers<T extends object>(
 }
 
 export function toPascal<T extends string>(term: T): ToPascal<T> {
-  if (isNumericKey(term)) {
-    return term as ToPascal<T>;
-  }
-
-  return toCamel(term).replace(/^([a-z])/, (m) =>
-    m[0].toUpperCase(),
-  ) as ToPascal<T>;
+  return convertKey(term, 'pascal') as ToPascal<T>;
 }
 
 export function objectToPascal<T extends object>(obj: T): ObjectToPascal<T> {
   return convertObject(obj, toPascal);
 }
 
-export type ToCamel<S extends string | number | symbol> = S extends string
-  ? string extends S
-    ? Uncapitalize<S>
-    : S extends NumericKey
-    ? S
-    : CamelScan<CamelInitial<S>>
-  : never;
-
-// Match the runtime's initial ASCII capital replacement and one-character case.
-type CamelInitial<S extends string> = S extends `${infer Head}${infer Tail}`
-  ? Tail extends ''
-    ? Lowercase<Head>
-    : Head extends CapitalLetters
-    ? `${Lowercase<Head>}${Tail}`
-    : S
-  : S;
-
-// A separator is consumed only before a lowercase ASCII letter or a digit.
-// Consume both characters together, just as the runtime's global regex does.
-type CamelScan<S extends string, Acc extends string = ''> =
-  S extends `${infer Head}${infer Tail}`
-    ? Head extends '_' | '-'
-      ? Tail extends `${infer Next}${infer Rest}`
-        ? Next extends LowercaseLetters | Numbers
-          ? CamelScan<Rest, `${Acc}${Uppercase<Next>}`>
-          : Extract<LowercaseLetters | Numbers, Next> extends never
-          ? CamelScan<Tail, `${Acc}${Head}`>
-          : `${Acc}${string}`
-        : Tail extends '' ? `${Acc}${Head}` : `${Acc}${string}`
-      : CamelScan<Tail, `${Acc}${Head}`>
-    : S extends '' ? Acc : `${Acc}${string}`;
+export type ToCamel<S extends string | number | symbol> =
+  ConvertKey<S, 'camel', false>;
 
 export type ObjectToCamel<T extends object | undefined | null> =
   T extends undefined
@@ -201,17 +193,8 @@ export type ObjectToCamel<T extends object | undefined | null> =
         [K in keyof T as ToCamel<K>]: ConvertObjectValue<T[K], 'camel'>;
       };
 
-export type ToPascal<S extends string | number | symbol> = S extends string
-  ? string extends S
-    ? Capitalize<S>
-    : PascalInitial<ToCamel<S>>
-  : never;
-
-type PascalInitial<S extends string> = S extends `${infer Head}${infer Tail}`
-  ? Head extends LowercaseLetters
-    ? `${Uppercase<Head>}${Tail}`
-    : S
-  : S;
+export type ToPascal<S extends string | number | symbol> =
+  ConvertKey<S, 'pascal', false>;
 
 export type ObjectToPascal<T extends object | undefined | null> =
   T extends undefined
@@ -231,13 +214,7 @@ export type ObjectToPascal<T extends object | undefined | null> =
 export type ToSnake<
   S extends string | number | symbol,
   SplitNumbers extends boolean = true,
-> = S extends string
-  ? string extends S
-    ? string
-    : S extends NumericKey
-    ? S
-    : SnakeScan<S, '', 'start', SplitNumbers>
-  : never;
+> = ConvertKey<S, 'snake', SplitNumbers>;
 
 export type ObjectToSnake<
   T extends object | undefined | null,
@@ -290,41 +267,96 @@ export type ObjectToScreamingSnake<
 
 type CaseMode = 'camel' | 'pascal' | 'snake' | 'screamingSnake';
 
-type NumericKey = `${number}`;
-
-type SnakeScan<
-  S extends string,
-  Acc extends string,
-  Previous extends CharacterKind,
+type ConvertKey<
+  S extends string | number | symbol,
+  Mode extends CaseMode,
   SplitNumbers extends boolean,
-> = S extends `${infer Head}${infer Tail}`
-  ? Head extends Numbers
-    ? TakeNumberRun<S> extends [
-        infer NumberRun extends string,
-        infer AfterNumber extends string,
-      ]
-      ? SnakeScan<
-          AfterNumber,
-          `${Acc}${NumberSeparator<
-            Previous,
-            AfterNumber,
-            SplitNumbers
-          >}${NumberRun}`,
-          'number',
-          SplitNumbers
-        >
+> = S extends number
+  ? ConvertKey<`${S}`, Mode, SplitNumbers>
+  : S extends string
+  ? string extends S
+    ? string
+    : IsNumericKey<S> extends true
+    ? S
+    : S extends `${string}${'_' | '-'}${string}`
+    ? ConvertKeyScan<S, Mode, SplitNumbers>
+    : Mode extends 'camel'
+    ? Uncapitalize<S>
+    : Mode extends 'pascal'
+    ? Capitalize<S>
+    : ConvertKeyScan<S, Mode, SplitNumbers, true>
+  : never;
+
+// Signed decimal strings use the same grammar as isNumericKey at runtime.
+type IsNumericKey<S extends string> = S extends `-${infer Unsigned}`
+  ? IsDecimal<Unsigned>
+  : IsDecimal<S>;
+
+type IsDecimal<S extends string> = S extends `${infer Whole}.${infer Fraction}`
+  ? IsDigits<Whole> extends true
+    ? IsDigits<Fraction>
+    : false
+  : IsDigits<S>;
+
+type IsDigits<S extends string> = S extends ''
+  ? false
+  : TakeNumberRun<S> extends [string, ''] ? true : false;
+
+type AppendWord<
+  Acc extends string,
+  Word extends string,
+  Mode extends CaseMode,
+> = Word extends ''
+  ? Acc
+  : Mode extends 'snake'
+  ? Acc extends '' ? Lowercase<Word> : `${Acc}_${Lowercase<Word>}`
+  : Mode extends 'pascal'
+  ? `${Acc}${Capitalize<Lowercase<Word>>}`
+  : Acc extends '' ? Lowercase<Word> : `${Acc}${Capitalize<Lowercase<Word>>}`;
+
+type ConvertKeyScan<
+  S extends string,
+  Mode extends CaseMode,
+  SplitNumbers extends boolean,
+  SeparateCapitals extends boolean = false,
+  Acc extends string = '',
+  Word extends string = '',
+  Previous extends string = '',
+> = string extends S
+  ? string
+  : S extends `${infer Head}${infer Tail}`
+  ? string extends Head
+    ? string
+    : Head extends '_' | '-'
+    ? ConvertKeyScan<Tail, Mode, SplitNumbers, SeparateCapitals, AppendWord<Acc, Word, Mode>>
+    : Head extends Numbers
+    ? TakeNumberRun<S> extends [infer Digits extends string, infer After extends string]
+      ? SplitNumber<Previous, After, SplitNumbers> extends true
+        ? ConvertKeyScan<After, Mode, SplitNumbers, SeparateCapitals, AppendWord<Acc, Word, Mode>, Digits, '0'>
+        : ConvertKeyScan<After, Mode, SplitNumbers, SeparateCapitals, Acc, `${Word}${Digits}`, '0'>
       : never
     : Head extends CapitalLetters
-    ? SnakeScan<
-        Tail,
-        `${Acc}${WordSeparator<Acc>}${Lowercase<Head>}`,
-        'upper',
-        SplitNumbers
-      >
+    ? StartsWord<Previous, Tail, SeparateCapitals> extends true
+      ? ConvertKeyScan<Tail, Mode, SplitNumbers, SeparateCapitals, AppendWord<Acc, Word, Mode>, Head, Head>
+      : ConvertKeyScan<Tail, Mode, SplitNumbers, SeparateCapitals, Acc, `${Word}${Head}`, Head>
     : Head extends LowercaseLetters
-    ? SnakeScan<Tail, `${Acc}${Head}`, 'lower', SplitNumbers>
-    : SnakeScan<Tail, `${Acc}${Head}`, 'other', SplitNumbers>
-  : Acc;
+    ? ConvertKeyScan<Tail, Mode, SplitNumbers, SeparateCapitals, Acc, `${Word}${Head}`, Head>
+    : Extract<CapitalLetters | LowercaseLetters | Numbers | '_' | '-', Head> extends never
+    ? ConvertKeyScan<Tail, Mode, SplitNumbers, SeparateCapitals, Acc, `${Word}${Head}`, Head>
+    : string
+  : S extends '' ? AppendWord<Acc, Word, Mode> : string;
+
+type StartsWord<
+  Previous extends string,
+  Tail extends string,
+  SeparateCapitals extends boolean,
+> = SeparateCapitals extends true
+  ? true
+  : Previous extends LowercaseLetters | Numbers
+    ? true
+    : Previous extends CapitalLetters
+    ? Tail extends `${LowercaseLetters}${string}` ? true : false
+    : false;
 
 type TakeNumberRun<
   S extends string,
@@ -335,21 +367,17 @@ type TakeNumberRun<
     : [Acc, S]
   : [Acc, ''];
 
-type NumberSeparator<
-  Previous extends CharacterKind,
+type SplitNumber<
+  Previous extends string,
   AfterNumber extends string,
   SplitNumbers extends boolean,
 > = SplitNumbers extends false
-  ? ''
-  : Previous extends 'lower'
+  ? false
+  : Previous extends LowercaseLetters
   ? AfterNumber extends `${CapitalLetters}${LowercaseLetters}${string}`
-    ? ''
-    : '_'
-  : '';
-
-type WordSeparator<Acc extends string> = Acc extends '' ? '' : '_';
-
-type CharacterKind = 'start' | 'lower' | 'upper' | 'number' | 'other';
+    ? false
+    : true
+  : false;
 
 type Convert<
   T extends object | undefined | null,

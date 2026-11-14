@@ -29,6 +29,7 @@ execFileSync(
     packageJsonPath,
     '--bumpFiles',
     packageJsonPath,
+    ...process.argv.slice(2),
   ],
   { stdio: 'inherit' },
 );
