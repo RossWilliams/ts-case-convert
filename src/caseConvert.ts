@@ -155,14 +155,36 @@ export function objectToPascal<T extends object>(obj: T): ObjectToPascal<T> {
 }
 
 export type ToCamel<S extends string | number | symbol> = S extends string
-  ? S extends NumericKey
+  ? string extends S
+    ? Uncapitalize<S>
+    : S extends NumericKey
     ? S
-    : S extends `${infer Head}_${infer Tail}`
-    ? `${ToCamel<Uncapitalize<Head>>}${Capitalize<ToCamel<Tail>>}`
-    : S extends `${infer Head}-${infer Tail}`
-    ? `${ToCamel<Uncapitalize<Head>>}${Capitalize<ToCamel<Tail>>}`
-    : Uncapitalize<S>
+    : CamelScan<CamelInitial<S>>
   : never;
+
+// Match the runtime's initial ASCII capital replacement and one-character case.
+type CamelInitial<S extends string> = S extends `${infer Head}${infer Tail}`
+  ? Tail extends ''
+    ? Lowercase<Head>
+    : Head extends CapitalLetters
+    ? `${Lowercase<Head>}${Tail}`
+    : S
+  : S;
+
+// A separator is consumed only before a lowercase ASCII letter or a digit.
+// Consume both characters together, just as the runtime's global regex does.
+type CamelScan<S extends string, Acc extends string = ''> =
+  S extends `${infer Head}${infer Tail}`
+    ? Head extends '_' | '-'
+      ? Tail extends `${infer Next}${infer Rest}`
+        ? Next extends LowercaseLetters | Numbers
+          ? CamelScan<Rest, `${Acc}${Uppercase<Next>}`>
+          : Extract<LowercaseLetters | Numbers, Next> extends never
+          ? CamelScan<Tail, `${Acc}${Head}`>
+          : `${Acc}${string}`
+        : Tail extends '' ? `${Acc}${Head}` : `${Acc}${string}`
+      : CamelScan<Tail, `${Acc}${Head}`>
+    : S extends '' ? Acc : `${Acc}${string}`;
 
 export type ObjectToCamel<T extends object | undefined | null> =
   T extends undefined
@@ -180,14 +202,16 @@ export type ObjectToCamel<T extends object | undefined | null> =
       };
 
 export type ToPascal<S extends string | number | symbol> = S extends string
-  ? S extends NumericKey
-    ? S
-    : S extends `${infer Head}_${infer Tail}`
-    ? `${Capitalize<ToCamel<Head>>}${Capitalize<ToCamel<Tail>>}`
-    : S extends `${infer Head}-${infer Tail}`
-    ? `${Capitalize<ToCamel<Head>>}${Capitalize<ToCamel<Tail>>}`
-    : Capitalize<S>
+  ? string extends S
+    ? Capitalize<S>
+    : PascalInitial<ToCamel<S>>
   : never;
+
+type PascalInitial<S extends string> = S extends `${infer Head}${infer Tail}`
+  ? Head extends LowercaseLetters
+    ? `${Uppercase<Head>}${Tail}`
+    : S
+  : S;
 
 export type ObjectToPascal<T extends object | undefined | null> =
   T extends undefined
@@ -323,11 +347,7 @@ type NumberSeparator<
     : '_'
   : '';
 
-type WordSeparator<Acc extends string> = Acc extends ''
-  ? ''
-  : Acc extends `${string}_`
-  ? ''
-  : '_';
+type WordSeparator<Acc extends string> = Acc extends '' ? '' : '_';
 
 type CharacterKind = 'start' | 'lower' | 'upper' | 'number' | 'other';
 
